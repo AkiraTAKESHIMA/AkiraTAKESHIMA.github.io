@@ -1,0 +1,174 @@
+body {
+  background: url(img/bg/BG_GraphPaper.png);
+}
+
+ul{
+  font-family: 'consolas', '游ゴシック', sans-serif;
+  font-size: 100%;
+  background-color: rgba(0,0,0,0.0);
+  color: rgba(245,245,245,1.0);
+  width: 94%;
+  margin: 0.5% auto;
+  padding: 2% 2%;
+}
+
+div {
+  display: inline-block;
+  width: 94%;
+  padding: 0 3%;
+}
+
+.Title {
+  background: url(img/bg/1Y1blpo5E0AnQlWx5zUub468THIjm4SaL.jpg);
+}
+
+.Profile {
+  background: rgba(72,90,63,0.65);
+}
+
+.Works {
+  font-family: inherit;
+  background: rgba(30,85,85,0.65);
+}
+
+/*div.Activities {
+  background: rgba(40,70,90,0.65);
+}*/
+
+.Products {
+  font-family: inherit;
+  background: rgba(70,80,140,0.65);
+}
+
+.Memorandum {
+  font-family: inherit;
+  background: rgba(22,48,90,0.65);
+}
+
+.Resources {
+  font-family: inherit;
+  background: rgba(80,80,80,0.65);
+}
+
+/*.Updates {
+  font-family: inherit;
+  background: rgba(40,40,43,0.65);
+}*/
+
+.Links {
+  font-family: inherit;
+  background: rgba(30,12,12,0.65);
+}
+
+.Photos {
+  font-family: inherit;
+  background: rgba(0,0,0,0.65);
+}
+
+.text {
+  font-family: inherit;
+  font-size: 100%;
+  line-height: 120%;
+}
+
+.text80 {
+  font-family: inherit;
+  font-size: 80%;
+  line-height: 120%;
+}
+
+.text120 {
+  font-family: inherit;
+  font-size: 120%;
+  line-height: 120%;
+}
+
+.text-indent {
+  font-family: inherit;
+  padding-left: 1em;
+}
+
+.text-indentback {
+  font-family: inherit;
+  text-indent: -1em;
+  padding-left: 1em;
+}
+
+
+span.index1 {
+  font-size: 125%;
+  font-weight: bold;
+  line-height: 200%;
+}
+
+span.index2 {
+  font-size: 105%;
+  font-weight: bold;
+  line-height: 135%;
+}
+
+span.index3 {
+  font-size: 105%;
+  font-weight: normal;
+  line-height: 200%;
+}
+
+span.block {
+  display: inline-block;
+  margin-bottom: -2em;
+}
+
+span.small90 {
+  font-size: 90%;
+  font-weight: normal;
+  line-height: 100%;
+}
+
+a {
+  color: rgba(255,255,255,1.0);
+  text-decoration: none;
+}
+a:link {
+}
+a:hover {
+  text-decoration: underline;
+}
+a:visited {
+}
+
+.underlined {
+  text-decoration: underline;
+}  
+
+input {
+  font-family: inherit;
+  width: 30%;
+  font-size: 90%;
+  line-height: 100%;
+}
+
+button {
+  font-family: inherit;
+  margin: 7px 0;
+  vertical-align: middle;
+  font-size: 80%;
+  line-height: 135%;
+}
+
+pre {
+  /* Mozzila */
+  white-space: -moz-pre-wrap;
+
+  /* Opera 4-6 */
+  white-space: -pre-wrap;
+
+  /* Opera 7 */
+  white-space: -o-pre-wrap;
+
+  /* CSS3 */
+  white-space: pre-wrap;
+
+  /* IE 5.5+ */
+  word-wrap: break-word;
+}
+
