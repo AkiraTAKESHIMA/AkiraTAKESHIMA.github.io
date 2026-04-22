@@ -1,0 +1,476 @@
+<!DOCTYPE html>
+<html lang="ja">
+
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <title>Quick Start</title>
+
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"
+      integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY="
+      crossorigin="" />
+  <!-- AFTER Leaflet's CSS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
+      integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo="
+      crossorigin=""></script>
+  <style>
+#top-controls {
+  padding: 8px;
+  background: #f5f5f5;
+  align-items: center;  /* 縦方向 */
+  display: flex;
+  gap: 8px;
+  border-bottom: 1px solid #ccc;
+}
+
+#main {
+  display: flex;
+  /*height: calc(100vh - 48px);*/
+  height: 600px;
+}
+
+#map {
+  flex: 1;
+  width: 600px;
+  height: 600px;
+  /*height: calc(100vh - 48px);*/
+  cursor: default;
+}
+
+#side-panel {
+  width: 280px;
+  padding: 8px;
+  background: #fafafa;
+  border-left: 1px solid #ccc;
+  overflow-y: auto;
+}
+
+.coord-box {
+  position: absolute;
+  pointer-events: none;
+  padding: 4px 6px;
+  fontSize: 12px;
+  color: black;
+  background: #fff9db;  /* 卵色 */
+  borderRadius: 3px;
+  display: none;
+  z-index: 1000;
+}
+
+.obs-label {
+  background: rgba(255, 255, 255, 0.75);
+  border: #663300;
+  box-shadow: none;
+  color: #333;
+  font-size: 11px;
+  padding: 2px 4px;
+  white-space: nowrap;
+  point-events: none;
+}
+  </style>
+</head>
+
+
+
+<body>
+<div id="top-controls">
+  <div id="step-controls"></div>
+  <button onclick="shiftTimeOnInvervals(-1)">◀</button>
+  <span id="timeLabel"></span>
+  <button onclick="shiftTimeOnIntervals(1)">▶</button>
+  <button>Latest</button>
+</div>
+
+<div id="main">
+  <div id="map"></div>
+  <div id="side-panel">
+    <div id="siteInfo"></div>
+    <div id="observations"></div>
+  </div>
+</div>
+
+
+<script>
+// ================================
+// URL
+// ================================
+const URL_OBSINFO = '/~akira/dat/MLIT/kawabou/obsinfo'
+// ================================
+// 地図関数
+// ================================
+function formatLatLon(lat, lng) {
+  function fmt(v) {
+    const sign = v < 0 ? '-' : '';
+    v = Math.abs(v);
+    const deg = Math.floor(v);
+    const min = (v - deg) * 60;
+    return `${sign}${deg}° ${min.toFixed(2)}′`;
+  }
+  return `Lat ${fmt(lat)}, Lon ${fmt(lng)}`;
+}
+
+
+function selectTileSizeCeil(x) {
+  if (x <= TILE_SIZE_TABLE[0].v) return TILE_SIZE_TABLE[0];
+
+  for (const t of TILE_SIZE_TABLE) {
+    if (t.v >= x)  return t;
+  }
+
+  return TILE_SIZE_TABLE.at(-1);
+}
+
+function getVisibleRegionBounds(bounds, region) {
+  return {
+    west: Math.max(bounds.getWest(), region.west),
+    east: Math.min(bounds.getEast(), region.east),
+    south: Math.max(bounds.getSouth(), region.south),
+    north: Math.min(bounds.getNorth(), region.north),
+  };
+}
+
+function getTileRange(bounds, tileSize) {
+  // 表示範囲を日本域に clamp
+  const west  = Math.max(bounds.getWest(),  REGION.west);
+  const east  = Math.min(bounds.getEast(),  REGION.east);
+  const south = Math.max(bounds.getSouth(), REGION.south);
+  const north = Math.min(bounds.getNorth(), REGION.north);
+
+  // 総タイル数（0-based index）
+  const nx = Math.ceil((REGION.east  - REGION.west)  / tileSize);
+  const ny = Math.ceil((REGION.north - REGION.south) / tileSize);
+
+  // 生のタイル番号
+  let xs = Math.floor((west  - REGION.west)  / tileSize);
+  let xe = Math.floor((east  - REGION.west)  / tileSize);
+  let ys = Math.floor((south - REGION.south) / tileSize);
+  let ye = Math.floor((north - REGION.south) / tileSize);
+
+  // clamp
+  /*xs = Math.max(0, Math.min(xs, nx - 1));
+  xe = Math.max(0, Math.min(xe, nx - 1));
+  ys = Math.max(0, Math.min(ys, ny - 1));
+  ye = Math.max(0, Math.min(ye, ny - 1));*/
+  xs = Math.max(xs, 0);
+  xe = Math.min(xe, nx-1);
+  ys = Math.max(ys, 0);
+  ye = Math.min(ye, ny-1);
+  console.log(xs, xe, ys, ye);
+
+  return { xs, xe, ys, ye };
+}
+
+
+function getTileKey(tileSize, x, y) {
+  return `${tileSize.v}_${x}_${y}`;
+}
+
+const tileLayers = new Map();
+const loadingTiles = new Set();
+
+async function loadTile(tileSize, x, y) {
+  console.log(`loading (${x}, ${y}).`);
+  const key = getTileKey(tileSize, x, y);
+
+  // 既に読み込み済み or 読込み中なら何もしない
+  if (tileLayers.has(key) || loadingTiles.has(key)) return;
+
+  loadingTiles.add(key);
+
+  const url = `${URL_OBSINFO}/stg/tile/${tileSize.s}/${String(x).padStart(3,'0')}_${String(y).padStart(3,'0')}/obs.json`;
+
+  try {
+    const res = await fetch(url);
+
+    // ファイルが存在しない
+    if (!res.ok) {
+      loadingTiles.delete(key);
+      return;
+    }
+
+    const data = await res.json();
+
+    const group = L.layerGroup();
+
+    const showTooltip = map.getZoom() >= ZOOM_SHOW_TOOLTIP;
+
+    for (const site of data) {
+      const marker = L.circleMarker(
+        [site.lat, site.lon],
+        SITE_MARKER_STYLE
+      );
+
+      if (showTooltip) {
+        marker.bindTooltip(site.obsNm, {
+          ...TOOLTIP_STYLE, 
+          permanent: true,
+        });
+      }
+
+      // クリック時の動作
+      marker.on('click', () => {
+        displaySiteInfo(site);
+      });
+
+      group.addLayer(marker);
+    }
+
+    group.addTo(map);
+    tileLayers.set(key, group);
+
+  } catch(err) {
+    console.error('Failed to load tile: ', key, err);
+  } finally {
+    loadingTiles.delete(key);
+  }
+}
+
+function updateTiles() {
+  // 描画範囲の大きさからタイルの大きさを決定
+  const bounds = map.getBounds();
+  const r = getVisibleRegionBounds(bounds, REGION);
+  const mapSize = Math.min(r.east - r.west, r.north - r.south);
+  const tileSize = selectTileSizeCeil(mapSize);
+  console.log('zoom', map.getZoom());
+  console.log('lng', r.west, r.east);
+  console.log('mapSize', mapSize);
+  console.log('tileSize', tileSize.v);
+
+  // タイルサイズ変更時は全タイル破棄
+  if (tileSize.v !== currentTileSize) {
+    for (const group of tileLayers.values()) {
+      map.removeLayer(group);
+    }
+    tileLayers.clear();
+    loadingTiles.clear();
+    currentTileSize = tileSize.v;
+  }
+
+  // 読み込むタイルのインデックスを計算
+  const {xs, xe, ys, ye} = getTileRange(bounds, tileSize.v);
+
+  // データ読込み, 描画
+  for (let x = xs; x <= xe; x++) {
+    for (let y = ys; y <= ye; y++) {
+      loadTile(tileSize, x, y);
+    }
+  }
+}
+
+function updateTooltips() {
+  const show = map.getZoom() >= ZOOM_SHOW_TOOLTIP;
+  console.log(`zoom ${map.getZoom()} ${show}`);
+
+  for (const group of tileLayers.values()) {
+    group.eachLayer(marker => {
+      if (show) {
+        if (!marker.getTooltip()) {
+          marker.bindTooltip(marker.siteNm, {
+            ...TOOLTIP_STYLE,
+            permanent: true,
+          });
+        }
+      } else {
+        if (marker.getTooltip()) {
+          marker.unbindTooltip();
+        }
+      }
+    });
+  }
+}
+// ================================
+// 地図
+// ================================
+const CLAT = 36+37/60+20/3600;
+const CLNG = 139+2/60+18/3600;
+const TILE_SIZE_MAX = 1.0;
+const GLOBE = Object.freeze({
+  west: -180,
+  east: 180,
+  south: -90,
+  north: 90,
+});
+const REGION = Object.freeze({
+  west: 120,
+  east: 150,
+  south: 20,
+  north: 50,
+});
+const TILE_SIZE_TABLE = [
+  { v: 0.05, s: "0.05" },
+  { v: 0.1 , s: "0.1" },
+  { v: 0.2 , s: "0.2" },
+  { v: 0.5 , s: "0.5" },
+  { v: 1.0 , s: "1.0" },
+];
+
+const SITE_MARKER_STYLE = {
+  radius: 5,
+  color: 'blue',
+  weight: 1,
+  fillOpacity: 0.5,
+};
+const ZOOM_SHOW_TOOLTIP = 10;
+const TOOLTIP_STYLE = {
+  permanent: true,
+  direction: 'right',
+  offset: [6, 0],
+  className: 'obs-label',
+};
+
+let currentTileSize = null;
+
+const map = L.map('map').setView([CLAT, CLNG], 13);
+const tiles = L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
+    maxZoom: 19,
+    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
+}).addTo(map);
+
+// --------------------------------
+// LatLng of the mouse cursor
+// --------------------------------
+/*
+map.on('mousemove', (e) => {
+  coordDiv.style.display = 'block';
+
+  const offset = 12;
+  coordDiv.style.left = `${e.containerPoint.x + offset}px`;
+  coordDiv.style.top  = `${e.containerPoint.y - offset}px`;
+  coordDiv.textContent = formatLatLon(e.latlng.lat, e.latlng.lng);
+});
+
+map.on('mouseout', () => {
+  coordDiv.style.display = 'none';
+});
+
+const coordDiv = document.createElement('div');
+coordDiv.classList.add('coord-box');
+map.getContainer().appendChild(coordDiv);
+*/
+
+map.on('moveend', updateTiles);
+// ================================
+// サイドパネル制御関数
+// ================================
+function displaySiteInfo(site) {
+  div = document.getElementById('siteInfo');
+  div.textContent = `ID ${site.id}`;
+}
+// ================================
+// 時間制御関数
+// ================================
+function hourToSec(hour) {
+  return hour * 3600 * 1000;
+}
+
+function timeFloorToInterval(date) {
+  return new Date(Math.floor((date.getTime() - BASE_EPOCH) / dt) * dt + BASE_EPOCH);
+}
+
+function shiftTimeSimple(step) {
+  currentTime = new Date(currentTime.getTime() + dt * step);
+  updateTime();
+}
+
+function shiftTimeOnIntervals(step) {
+  ta = currentTime.getTime() + TIMEDIFF_JST - BASE_EPOCH
+  /*if ( ta % dt == 0 ) {
+    currentTime = new Date(currentTime.getTime() + dt * step);
+  } else {
+    ta = Math.floor(ta / dt) * dt;
+    step < 0 && step += 1;
+    currentTime = new Date(ta + dt * step + BASE_EPOCH - TIMEDIFF_JST);
+  };*/
+  if ( ta % dt != 0 ) {
+    ta = Math.floor(ta / dt) * dt;
+    if (step < 0) step += 1;
+  };
+  currentTime = new Date(ta + dt * step + BASE_EPOCH - TIMEDIFF_JST);
+  updateTime();
+}
+
+function formatFileTimeUTC(date) {
+  const y = date.getUTCFullYear();
+  const m = String(date.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(date.getUTCDate()).padStart(2, '0');
+  const H = String(date.getUTCHours()).padStart(2, '0');
+  const M = String(date.getUTCMinutes()).padStart(2, '0');
+  const S = String(date.getUTCSeconds()).padStart(2, '0');
+  return `${y}${m}${d}_${H}${M}${S}`;
+}
+
+function formatDisplayTimeJST(date) {
+  const jst = new Date(date.getTime() + TIMEDIFF_JST);
+  const y = jst.getUTCFullYear();
+  const m = String(jst.getUTCMonth() + 1).padStart(2, '0');
+  const d = String(jst.getUTCDate()).padStart(2, '0');
+  const H = String(jst.getUTCHours()).padStart(2, '0');
+  const M = String(jst.getUTCMinutes()).padStart(2, '0');
+  const S = String(jst.getUTCSeconds()).padStart(2, '0');
+  return `${y}/${m}/${d} ${H}:${M}:${S}`;
+}
+
+function updateStepButtons() {
+  stepButtons.forEach(btn => {
+    btn.style.fontWeight = (btn.stepHour == STEP_HOUR) ? 'bold' : 'normal';
+    btn.style.background = (btn.stepHour == STEP_HOUR) ? '#ddeeff' : '';
+  });
+}
+// ================================
+// 時間制御部初期化
+// ================================
+const TIMEDIFF_JST = hourToSec(9);
+const BASE_EPOCH = Date.UTC(2026, 0, 1, 0, 0, 0);
+
+const stepControls = document.getElementById('step-controls');
+
+const stepOptions = [
+  { label: "1h" , hour: 1 },
+  { label: "3h" , hour: 3 },
+  { label: "6h" , hour: 6 },
+  { label: "12h", hour: 12 }
+];
+
+const stepContainer = document.createElement('div');
+stepContainer.style.display = 'inline-flex';
+stepContainer.style.gap = '4px';
+
+const stepButtons = [];
+stepOptions.forEach(opt => {
+  const btn = document.createElement('button');
+  btn.textContent = opt.label;
+  btn.stepHour = opt.hour;
+  btn.onclick = () => {
+    STEP_HOUR = opt.hour;
+    dt = hourToSec(STEP_HOUR);
+    updateStepButtons();
+  };
+  stepButtons.push(btn);
+  stepContainer.appendChild(btn);
+});
+
+let STEP_HOUR = 1;
+let dt = hourToSec(STEP_HOUR);
+updateStepButtons();
+stepControls.append(stepContainer);
+// ================================
+// 表示更新関数
+// ================================
+async function updateTime() {
+  const label = document.getElementById('timeLabel');
+  label.textContent = formatDisplayTimeJST(currentTime);
+}
+// ================================
+// 全体初期化
+// ================================
+currentTime = timeFloorToInterval(new Date());
+updateTime();
+updateTiles();
+</script>
+</body>
+
+
+</html>
+
