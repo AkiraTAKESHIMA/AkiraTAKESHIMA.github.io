@@ -1,0 +1,15 @@
+pre code {
+  display: block;
+  overflow-x: auto;
+  padding: 1em;
+  font-family: "Cascadia Mono";
+  font-size: 15px;
+  font-weight: normal;
+  line-height: 1.5;
+}
+
+code {
+  padding: 3px 5px;
+}
+
+

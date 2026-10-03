@@ -1,0 +1,12 @@
+.cType { color: #d70087; font-weight: bold; }
+.cComment { color: #878787; }
+.cStatement { color: #d70087; }
+.cString { color: #5f8700; }
+.cStorageClass { color: #005f87; font-weight: bold; }
+.cInclude { color: #d70000; }
+.cFormat { color: #5f8700; }
+.cSpecial { color: #5f8700; font-weight: bold; }
+.cNumber { color: #d75f00; }
+.cRepeat { color: #8700af; font-weight: bold; }
+.cConditional { color: #8700af; font-weight: bold; }
+.cConstant { color: #008700; font-weight: bold; }

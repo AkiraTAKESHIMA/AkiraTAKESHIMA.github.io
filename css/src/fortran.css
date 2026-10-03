@@ -1,0 +1,15 @@
+.fortranIntrinsic { color: #005faf; background-color: #eeeeee; padding-bottom: 1px; }
+.fortranNumber { color: #d75f00; }
+.fortranString { color: #5f8700; }
+.fortranFloat { color: #d75f00; }
+.fortranContinueMark { color: #008700; }
+.fortranUnitHeader { color: #005faf; font-weight: bold; }
+.fortranVariableAttribute { color: #d75faf; }
+.fortranType { color: #d70087; font-weight: bold; }
+.fortranReadWrite { color: #0087af; font-weight: bold; }
+.fortranIO { color: #005f87; }
+.fortranOperator { color: #0087af; font-weight: bold; }
+.fortranCall { color: #0087af; font-weight: bold; }
+.fortranRepeat { color: #8700af; font-weight: bold; }
+.fortranComment { color: #878787; }
+.fortranConditional { color: #8700af; font-weight: bold; }

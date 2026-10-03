@@ -23,11 +23,10 @@ from PIL import Image
 # get_line_ref_link
 
 # get_dir_raw_contents
-# get_dir_src_this
 # get_dir_img_this
+# get_f_css_src
 
 # is_on_head
-
 # check_block_end
 # check_block_begin
 
@@ -204,6 +203,14 @@ def get_line_ref_link(url, title):
 #===============================================================
 #
 #===============================================================
+#
+#
+#
+#
+#
+#===============================================================
+#
+#===============================================================
 def get_dir_raw_contents(dirName):
     return f'{const.dir_raw}/{dirName}/{const.dirName_contents}/'
 #===============================================================
@@ -213,6 +220,19 @@ def get_dir_img_this(path_raw, dir_raw_contents, dirName):
     dir_img_contents = f'{const.dir_page_base}/{dirName}/{const.dirName_img}/'
 
     return path_raw.replace(dir_raw_contents,dir_img_contents).replace(const.ext_raw,'')
+#===============================================================
+#
+#===============================================================
+def get_f_css_src(language: str) -> str:
+    return f'css/src/{language}.css'
+#===============================================================
+#
+#===============================================================
+#
+#
+#
+#
+#
 #===============================================================
 #
 #===============================================================
@@ -249,22 +269,6 @@ def check_block_begin(iLine, blockName_present, blockName_begin):
         raise Exception(
             f'@ line {iLine+1}; block "{const.blockName_ref}" may not be in any block.'
         )
-#===============================================================
-#
-#===============================================================
-def get_line_src_tail(iLine_tail):
-    proc = sys._getframe().f_code.co_name
-
-    if iLine_tail == 1:
-        line = '<!-- vim: set foldmethod=manual : -->'
-    elif iLine_tail == 2:
-        line = '</html>'
-    elif iLine_tail == 3:
-        line = '</body>'
-    else:
-        raise Exception(f'Unexpected value in iLine_tail: {iLine_tail}')
-
-    return line
 #===============================================================
 #
 #===============================================================
@@ -468,7 +472,16 @@ def format_page_head(title):
   <meta http-equiv="Content-Style-Sheet" content="text/css">\n\
   <link rel="icon" href="{const.url}/img/icon/favicon_03-5.ico" />\n\
   <link rel="stylesheet" type="text/css" href="{const.url}/css/common.css" media="all">\n\
-  <link rel="stylesheet" type="text/css" href="{const.url}/hi/styles/{const.style_css}.css" media="all">\n\
+  <link rel="stylesheet" type="text/css" href="{const.url}/css/src/common.css" media="all">\n\
+'
+    for language in const.extension.keys():
+        f_css = get_f_css_src(language)
+        if not os.path.isfile(f_css): continue
+        line += f'\
+  <link rel="stylesheet" type="text/css" href="{const.url}/{f_css}" media="all">\n\
+'
+
+    line += '\
   <script type="text/javascript" src="{const.url}/js/highlight.min.js"></script>\n\
   <script>hljs.highlightAll();</script>\n\
   <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>\n\
@@ -622,10 +635,8 @@ def format_content_inlines(line_in, iLine, remove_inlines=False):
             right_exist = '}' in line[loc0:]
 
             if not right_exist:
-                print('*** {} ***'.format(proc))
-                print('Invalid syntax @ line {}:'.format(iLine+1))
-                print(line)
-                quit()
+                raise Exception(f'Invalid syntax @ line {iLine+1}: \n{line}')
+
             loc_bracket_right = line[loc0:].index('}') + loc0
 
             if left_exist:
@@ -666,8 +677,8 @@ def format_content_inlines(line_in, iLine, remove_inlines=False):
                     loc_url_left = line[loc0:].index('{') + loc0
                     loc_url_right = line[loc0:].index('}') + loc0
                 except ValueError as e:
-                    print('ValueError: '+str(e)+'\nLine:\n'+line)
-                    quit()
+                    raise Exception(f'ValueError: {e} \n{line}')
+
                 url = line[loc_url_left+1:loc_url_right]
                 inline_formatted = get_line_double_link(cls_inline, url, content)
                 loc_inline_right = loc_url_right + 1
@@ -680,9 +691,8 @@ def format_content_inlines(line_in, iLine, remove_inlines=False):
                     loc_tid_left = line[loc0:].index('{') + loc0
                     loc_tid_right = line[loc0:].index('}') + loc0
                 except:
-                    print('*** ERROR ***')
-                    print(line)
-                    raise
+                    raise Exception(f'Failed to get parentheses of tid.\n{line}')
+
                 tid = line[loc_tid_left+1:loc_tid_right]
                 inline_formatted = get_line_double_id(tid, content)
                 loc_inline_right = loc_tid_right + 1
@@ -704,14 +714,70 @@ def format_content_inlines(line_in, iLine, remove_inlines=False):
 #===============================================================
 #
 #===============================================================
-def format_content_src(lines_src:list, language:str):
+def format_content_src(lines_src:list, language:str, ext: str):
     if language is None:
         line = f'<pre><code>'
     else:
         line = f'<pre><code class="language-{language}">'
 
-    for l in lines_src:
-        line += l + '\n'
+    #for l in lines_src:
+    #    line += l + '\n'
+
+    if ext is None:
+        ext = const.extension[language]
+
+    f_src = f'tmp/tmp.{ext}'
+    f_html = f'tmp/tmp.{ext}.html'
+
+    with open(f_src, 'w') as fp:
+        for l in lines_src:
+            fp.write(l + '\n')
+
+    cp = subprocess.run(
+      f'vim -c ":TOhtml | :w! {f_html} | :q! | :q" {f_src}',
+      shell=True,
+    )
+
+    lhtml = open(f_html, 'r').readlines()
+
+    # lhtml_style 0: pre {...}, 1: body {...}, 2: * { font-size ... }
+    lhtml_style = lhtml[lhtml.index('<style>\n')+2:lhtml.index('</style>\n')-1][3:]
+    lhtml_body = lhtml[lhtml.index("<pre id='vimCodeElement'>\n")+1:lhtml.index("</pre>\n")]
+    print(lhtml_body[0])
+
+    # read style
+    className_org2new = {}
+    for l in lhtml_style:
+        className_org = l.split()[0][1:]
+        className = None
+        if language in className_org:
+            if className_org.index(language) == 0:
+                className = className_org
+        if className is None:
+            className = language + className_org
+            className_org2new[className_org] = className
+        className_short = className[len(language)+1:]
+
+        style = l[l.index('{'):l.index('}')+1]
+
+        if className not in vimStyle[language].keys():
+            if className not in vimStyle_notfound[language].keys():
+                vimStyle_notfound[language][className] = style
+                print(f'className {className} not found. style: {style}')
+
+    # modify class names in body
+    for i, l in enumerate(lhtml_body):
+        if f'<span class="' not in line: continue
+        for corg, cnew in className_org2new.items():
+            key = f'<span class="{corg}">'
+            if key in l:
+                loc = l.index(key)
+                l = l[:loc] + f'<span class="{cnew}">' + l[loc+len(key)+1:]
+        lhtml_body[i] = l
+    
+    for l in lhtml_body:
+        line += l
+
     line += '</code></pre>'
 
     return line
@@ -1321,15 +1387,13 @@ def format_content_body_main(
                 #print('[{}] Block "{}" opened @ line {}'.format(proc, blockName,iLine+1))
 
                 if blockName == const.blockName_src:
-                    if len(comps) > 3:
+                    if len(comps) > 4:
                         raise Exception(
                             f'Too many components @ line {iLine}:\n'
                             f'{str(comps)}'
                         )
-                    if len(comps) == 3:
-                        src_language = comps[2]
-                    else:
-                        src_language = None
+                    src_language = comps[2] if len(comps) >= 3 else None
+                    ext_language = comps[3] if len(comps) >= 4 else None
 
                 elif blockName == const.blockName_table:
                     table_head = False
@@ -1395,7 +1459,7 @@ def format_content_body_main(
                     lines_lastUpdate = []
 
                 elif blockName == const.blockName_src:
-                    lines_fmt += [s + format_content_src(lines_src, src_language)]
+                    lines_fmt += [s + format_content_src(lines_src, src_language, ext_language)]
                     lines_src = []
                     flag_block_src_end = True
 
@@ -1616,7 +1680,7 @@ def format_index_body_main(comps: list):
             elif comp_below[kw.depth] <= comp[kw.depth]:
                 break
         if idx_comp_child_youngest is not None:
-            print(f'    child_youngest: {comps[idx_comp_child_youngest][kw.title_jp]}')
+            print(f'    child_youngest: {comps[idx_comp_child_youngest][kw.title]}')
 
         for j, comp_below in enumerate(comps[i+1:]):
             if comp_below[kw.depth] == comp[kw.depth]+1:
@@ -1856,28 +1920,15 @@ def read_index(dirName):
 
         comp = line.strip().split('|')
 
-        if len(comp) not in [3,4]:
+        if len(comp) not in [2, 3]:
             raise Exception('Invalid number of components.\n'+line.rstrip())
 
         # Get info.
-        title_jp_in = comp[0].strip()
-        title_en_in = comp[1].strip()
-        path        = comp[2].strip()
+        title_in = comp[0].strip()
+        path     = comp[1].strip()
 
-        title_jp = format_content_inlines(title_jp_in,iLine)
-        title_en = format_content_inlines(title_en_in,iLine)
-
-        if title_en == '':
-            title = title_jp
-            title_index = title_jp_in
-        elif title_jp == '':
-            title = title_en
-            title_index = title_en_in
-        else:
-            title = title_en + '<br>' + title_jp
-            title_index = title_jp_in + ' - ' + title_en_in
-
-        title_index = format_content_inlines(title_index,iLine,True)
+        title = format_content_inlines(title_in, iLine)
+        title_index = format_content_inlines(title_in, iLine, True)
 
         # Judge if path is file or directory
         file_raw = ''
@@ -1897,12 +1948,12 @@ def read_index(dirName):
                 dir_path = ''
         if dirName == const.category_Photos:
             if depth == 0:
-                dir_path = title_en
+                dir_path = title
 
         link_org = None
         link_dst = None
-        if len(comp) == 4:
-            for opt in [s.strip() for s in comp[3:]]:
+        if len(comp) == 3:
+            for opt in [s.strip() for s in comp[2:]]:
                 if is_on_head(opt, const.str_contents_list_org):
                     link_org = opt[len(const.str_contents_list_org):]
                 elif is_on_head(opt, const.str_contents_list_dst):
@@ -1914,7 +1965,7 @@ def read_index(dirName):
         if depth+1 > len(route):
             route.append('')
         #print(depth, len(route))
-        route[depth] = title_jp if title_en == '' else title_en
+        route[depth] = title
 
         isfile = True
         if file_raw == '':
@@ -1924,8 +1975,6 @@ def read_index(dirName):
 
         comps.append({
             kw.depth      : depth,
-            kw.title_en   : title_en,
-            kw.title_jp   : title_jp,
             kw.title      : title,
             kw.title_index: title_index,
             kw.path       : path,
@@ -1951,10 +2000,9 @@ def make_all(dirName, overwrite):
     #-----------------------------------------------------------
     for comp in comps:
         print('----------------------------------------------------------------')
-        print('depth   : {}'.format(comp[kw.depth]))
-        print('path    : {}'.format(comp[kw.path]))
-        print('title_en: {}'.format(comp[kw.title_en]))
-        print('title_jp: {}'.format(comp[kw.title_jp]))
+        print('depth: {}'.format(comp[kw.depth]))
+        print('path : {}'.format(comp[kw.path]))
+        print('title: {}'.format(comp[kw.title]))
         print('dir_path: {}'.format(comp[kw.dir_path]))
         print('file_raw: {}'.format(comp[kw.file_raw]))
         print('link_org: {}'.format(comp[kw.link_org]))
@@ -2088,6 +2136,59 @@ def make_all(dirName, overwrite):
 #===============================================================
 #
 #===============================================================
+#
+#
+#
+#
+#
+#===============================================================
+#
+#===============================================================
+def prep_vimStyle():
+    vimStyle = {}
+    for language in const.extension.keys():
+        vimStyle[language] = {}
+
+        f_css = get_f_css_src(language)
+        if not os.path.isfile(f_css):
+            continue
+
+        for line in open(f_css, 'r').readlines():
+            className = line.strip().split()[0][1:]
+            style = line[len(className)+1:].strip()
+            vimStyle[language][className] = style
+            print(className, style)
+
+    return vimStyle
+#===============================================================
+#
+#===============================================================
+def prep_vimStyle_notfound():
+    vimStyle_notfound = {}
+    for language in const.extension.keys():
+        vimStyle_notfound[language] = {}
+
+    return vimStyle_notfound
+#===============================================================
+#
+#===============================================================
+def report_vimStyle_notfound():
+    for language in vimStyle_notfound.keys():
+        if len(vimStyle_notfound[language]) == 0: continue
+        print(f'language: {language}')
+        for className, style in vimStyle_notfound[language].items():
+            print(f'.{className} {style}')
+#===============================================================
+#
+#===============================================================
+#
+#
+#
+#
+#
+#===============================================================
+#
+#===============================================================
 class Const():
     platform_github = 'github'
     platform_local = 'local'
@@ -2129,6 +2230,16 @@ class Const():
       category_tmp,
     ]
 
+    extension = dict(
+      fortran = 'f90',
+      python = 'py',
+      c = 'c',
+      html = 'html',
+      bash = 'sh',
+      json = 'json',
+      yaml = 'yaml',
+      plaintext = 'txt',
+    )
 
     blockName_index = 'index'
     blockName_contents = 'contents'
@@ -2221,13 +2332,10 @@ class Const():
         self.url_page = f'{self.url}/page{self.ext_platform}'
 
 
-
 class Keyword():
     depth = 'depth'
     title = 'title'
     title_index = 'title_index'
-    title_en = 'title_en'
-    title_jp = 'title_jp'
     link_org = 'link_org'
     link_dst = 'link_dst'
     path = 'path'
@@ -2307,8 +2415,13 @@ replaced = Replaced()
 
 inlines = mklist_inlines()
 
+vimStyle = prep_vimStyle()
+vimStyle_notfound = prep_vimStyle_notfound()
+
 if dirName_ == 'all':
     for dirName_this in const.dirNames:
         make_all(dirName_this, overwrite)
 else:
     make_all(dirName_, overwrite)
+
+report_vimStyle_notfound()

@@ -102,7 +102,6 @@ code.hljs {
   color: #005faf;
 }
 
-
 /* ============================================================
  * Python-specific settings
  * ============================================================ */
@@ -156,4 +155,79 @@ pre code.language-python .hljs-meta {
 /* Python comments */
 pre code.language-python .hljs-comment {
   color: #878787;
+}
+
+/* ============================================================
+ * Fortran-specific settings
+ * ============================================================ */
+
+pre code.language-fortran .hljs {
+  color: #444444;
+  background: #eeeeee;
+}
+
+/* program / module / subroutine / function etc. */
+pre code.language-fortran .hljs-title {
+  color: #005faf;
+  font-weight: bold;
+}
+
+/* Types: integer, real, complex, logical, character, ... */
+pre code.language-fortran .hljs-type {
+  color: #d70087;
+  font-weight: bold;
+}
+
+/* Keywords */
+pre code.language-fortran .hljs-keyword {
+  color: #d70087;
+}
+
+/* Intrinsic functions / procedures */
+pre code.language-fortran .hljs-built_in {
+  color: #005faf;
+}
+
+/* Storage-related keywords */
+pre code.language-fortran .hljs-meta {
+  color: #005f87;
+  font-weight: bold;
+}
+
+/* I/O and related keywords */
+pre code.language-fortran .hljs-attribute {
+  color: #005f87;
+}
+
+/* Function/subroutine calls */
+pre code.language-fortran .hljs-title.function_ {
+  color: #0087af;
+  font-weight: bold;
+}
+
+/* Operators */
+pre code.language-fortran .hljs-operator {
+  color: #0087af;
+  font-weight: bold;
+}
+
+/* Strings */
+pre code.language-fortran .hljs-string {
+  color: #5f8700;
+}
+
+/* Numbers */
+pre code.language-fortran .hljs-number {
+  color: #d75f00;
+}
+
+/* Comments */
+pre code.language-fortran .hljs-comment {
+  color: #878787;
+}
+
+/* Logical constants: .true., .false. */
+pre code.language-fortran .hljs-literal {
+  color: #008700;
+  font-weight: bold;
 }

@@ -1,1 +1,6 @@
 *.swp
+
+tmp/
+
+index_local.html
+page_local/

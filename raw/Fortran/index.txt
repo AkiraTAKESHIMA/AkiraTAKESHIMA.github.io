@@ -7,6 +7,12 @@ C | C
   配列の受け渡し | array.src
   システムコマンドの結果を受け取る | system.src
 
+組み込み手続き | built-in-procedure
+  リンク | link.src
+
+手続き | procedure
+  純粋手続き | pure-procedure.src
+
 LAPACK | LAPACK
   サンプル | sample
     実対称行列の固有値問題 | eig_sym_RRR.src
