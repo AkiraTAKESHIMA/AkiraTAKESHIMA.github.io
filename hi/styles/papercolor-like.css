@@ -1,0 +1,82 @@
+pre code.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 1em;
+  /*font-family: 'Fira Mono', consolas, 'Noto Sans JP', '游ゴシック', sans-serif;*/
+  font-family: 'lucida console', 'Noto Sans JP', '游ゴシック', sans-serif;
+  font-weight: normal;
+}
+code.hljs {
+  padding: 3px 5px
+}
+/**
+ * Obsidian style
+ * ported by Alexander Marenin (http://github.com/ioncreature)
+ */
+.hljs {
+  color: #444444;
+  background: #eeeeee;
+}
+.hljs-keyword {
+  color: #d70000;
+}
+.hljs-selector-tag {
+  /*color: #d70000*/
+  color: #000000
+}
+.hljs-literal {
+  color: #d70000;
+}
+.hljs-selector-id {
+  color: #d70000
+}
+.hljs-number {
+  color: #d75f00
+}
+.hljs-attribute {
+  color: #668bb0
+  /*color: #000000*/
+}
+.hljs-regexp,
+.hljs-link {
+  color: #d39745
+}
+.hljs-meta {
+  color: #557182
+}
+.hljs-tag,
+.hljs-name,
+.hljs-bullet,
+.hljs-subst,
+.hljs-emphasis,
+.hljs-type,
+.hljs-built_in,
+.hljs-selector-attr,
+.hljs-selector-pseudo,
+.hljs-addition,
+.hljs-variable,
+.hljs-template-tag,
+.hljs-template-variable {
+  /*color: #8cbbad*/
+  color: #8030c0;
+}
+.hljs-string {
+  /*color: #5f8700;*/
+  color: #40a040
+}
+.hljs-symbol {
+  /*color: #ec7600*/
+}
+.hljs-comment,
+.hljs-quote,
+.hljs-deletion {
+  color: #818e96
+}
+.hljs-selector-class {
+  /*color: #A082BD*/
+}
+.hljs-code,
+.hljs-title.class_,
+.hljs-class .hljs-title,
+.hljs-section {
+}
