@@ -187,7 +187,7 @@ def get_line_ref_link(url, title):
     if url == const.ref_link_none:
         return '  + (No link)'
     else:
-        return '  + <a href="{url}">{title}</a>'.format(url=url, title=title)
+        return f'  + <a href="{url}">{title}</a>'
 #===============================================================
 #
 #===============================================================
@@ -302,14 +302,14 @@ def get_image_from_drive(
     dir_img_tmb = os.path.join(dir_img_this,'tmb')
 
     if not os.path.isdir(dir_img_raw):
-        print('[{}] mkdir {}'.format(proc, dir_img_raw))
+        print(f'[{proc}] mkdir {dir_img_raw}')
         os.makedirs(dir_img_raw)
     if not os.path.isdir(dir_img_fmt):
-        print('[{}] mkdir {}'.format(proc, dir_img_fmt))
+        print('[{proc}] mkdir {dir_img_fmt}')
         os.makedirs(dir_img_fmt)
     if dirName in [const.category_Photos]:
         if not os.path.isdir(dir_img_tmb):
-            print('[{}] mkdir {}'.format(proc, dir_img_tmb))
+            print('[{proc}] mkdir {dir_img_tmb}')
             os.makedirs(dir_img_tmb)
 
     # Set paths
@@ -323,7 +323,7 @@ def get_image_from_drive(
     path_fmt = os.path.join(dir_img_fmt, fid+extension_fmt)
     path_tmb = os.path.join(dir_img_tmb, fid+extension_fmt)
 
-    print(f'[{proc}] {url}'.format(proc, url))
+    print(f'[{proc}] {url}')
     print(f' {""*len(proc)}  -> {path_raw.replace(const.dir_top,"")}')
 
 
@@ -348,22 +348,18 @@ def get_image_from_drive(
 
     # Download the image
     if os.path.isfile(path_raw):
-        print('[{}] raw fig. exists.'.format(proc))
+        print(f'[{proc}] raw fig. exists.')
     else:
-        print('[{}] Downloading.'.format(proc))
-        subprocess.call(('wget', '-O', '{}'.format(path_raw), url))
+        print('f[{proc}] Downloading.')
+        subprocess.call(('wget', '-O', path_raw, url))
         #subprocess.call(('wget', '-nv', url, '-O', '{}'.format(path_raw)))
         if not os.path.isfile(path_raw):
-            print('*** {} *** Downloading failed.'.format(proc))
-            print('Path: {}'.format(path_raw))
-            quit()
+            raise Exception(f'Downloading failed: {path_raw}')
         elif os.path.getsize(path_raw) == 0:
-            print('*** {} *** Downloaded file is empty.'.format(proc))
-            print('Path: {}'.format(path_raw))
             os.remove(path_raw)
-            quit()
+            raise Exception(f'Downloaded file is empty: {path_raw}')
         else:
-            print('[{}] Successfully downloaded.'.format(proc))
+            print(f'[{proc}] Successfully downloaded.')
 
     width_raw, height_raw = Image.open(path_raw).size
     size_raw = width_raw * height_raw
@@ -374,31 +370,30 @@ def get_image_from_drive(
         width_now, height_now = Image.open(path_fmt).size
         size_now = width_now * height_now
         if size_now == size_fmt:
-            print('[{}] fmt fig. exists.'.format(proc))
+            print(f'[{proc}] fmt fig. exists.')
             needToResize = False
 
     # Resize
     if needToResize:
         if size_raw > size_fmt:
             coef = (float(size_fmt) / size_raw)**0.5
-            #print('[{}] coef: {}'.format(proc, coef))
             width_fmt  = Decimal(str(width_raw *coef)).quantize(Decimal('0'), ROUND_HALF_UP)
             height_fmt = Decimal(str(height_raw*coef)).quantize(Decimal('0'), ROUND_HALF_UP)
 
             img = Image.open(path_raw)
             img.thumbnail((width_fmt,height_fmt), Image.ANTIALIAS)
             img.save(path_fmt, extension_fmt.replace('.',''))
-            print('[{}] path_fmt: {}'.format(proc, path_fmt.replace(const.dir_top,'')))
-            print('[{}]   (width, height) raw: ({}, {}), fmt: ({}, {})'.format(
-                  proc, width_raw, height_raw, width_fmt, height_fmt))
+            print(f'[{proc}] path_fmt: {path_fmt.replace(const.dir_top,"")}')
+            print(f'[{proc}]   (width, height) raw: ({width_raw}, {height_raw}), '\
+                  f'fmt: ({width_fmt}, {height_fmt})')
         else:
             if not os.path.isfile(path_fmt):
                 img = Image.open(path_raw)
                 width_now, height_now = img.size
                 img.save(path_fmt, extension_fmt.replace('.',''))
-                print('[{}] path_fmt: {}'.format(proc, path_fmt))
-                print('[{}]   (width, height) raw: ({}, {}), fmt: ({}, {})'.format(
-                      proc, width_raw, height_raw, width_now, height_now))
+                print(f'[{proc}] path_fmt: {path_fmt}')
+                print(f'[{proc}]   (width, height) raw: ({width_raw}, {height_raw}), '\
+                      f'fmt: ({width_now}, {height_now})')
 
     if dirName == const.category_Photos:
         # Check if need to make thumbnail
@@ -410,7 +405,7 @@ def get_image_from_drive(
 
             if (width_tmb <= width_tmb_this or height_tmb <= height_tmb_this) and\
                     width_tmb <= width_tmb_max or height_tmb <= height_tmb_max:
-                print('[{}] tmb fig. exists.'.format(proc))
+                print(f'[{proc}] tmb fig. exists.')
                 needToMakeThumbnail = False
 
         # Make thumbnail
@@ -421,9 +416,9 @@ def get_image_from_drive(
             img_tmb.thumbnail((width_tmb,height_tmb), Image.ANTIALIAS)
             img_tmb.save(path_tmb, extension_fmt.replace('.',''))
 
-            print('[{}]  path_tmb: {}'.format(proc, path_tmb.replace(const.dir_top,'')))
-            print('[{}]    (width, height) raw: ({}, {}), tmb: ({}, {})'.format(
-                  proc, width_raw, height_raw, width_tmb, height_tmb))
+            print(f'[{proc}]  path_tmb: {path_tmb.replace(const.dir_top,"")}')
+            print(f'[{proc}]    (width, height) raw: ({width_raw}, {height_raw}), '\
+                  f'tmb: ({width_tmb}, {height_tmb})')
 
         aspect_tmb = float(height_tmb) / width_tmb
 
@@ -489,14 +484,14 @@ def format_page_body_tag_begin():
 #
 #===============================================================
 def format_page_body_title(title):
-    line = '\
+    line = f'\
   <!-- Title -->\n\
   <ul class=\'indexBox\'>\n\
     <div class=\'title\'>\n\
       {title}\n\
     </div>\n\
   </ul>\n\
-'.format(title=title)
+'
 
     return [line]
 #===============================================================
@@ -580,26 +575,24 @@ def format_content_inlines(line_in, iLine, remove_inlines=False):
 
     # Format inlines
     def iInline_tag(line, loc0):
-        loc0_this = loc0
-        line_this = line[loc0_this:]
-        #print('line_this: {}'.format(line_this))
+        line_this = line[loc0:]
+        #print(f'0 line_this: {line_this}')
         while '/' in line_this and '{' in line_this:
+            #print(f'1 line_this: {line_this}')
             loc0_slash = line_this.index('/')
             if '{' not in line_this[loc0_slash+1:]:
                 break
             inline_nam = line_this[loc0_slash+1:line_this[loc0_slash+1:].index('{')+loc0_slash+1]
+            #print(f'inline_nam: {inline_nam}')
 
             for iInline, inline in enumerate(inlines):
                 if inline[kw.inline_nam] == inline_nam:
-                    #print('[{}] inline tag: {}'.format(proc, inline_nam))
+                    #print(f'inline nam: {inline_nam} tag: {inline[kw.inline_tag]}')
+                    #print(line_this)
                     return iInline
 
-            loc0_this += line_this.index('/')+1
-            if loc0_this == len(line_this):
-                break
-
-            line_this = line[loc0_this:]
-            #print('line_this: {}'.format(line_this))
+            line_this = line_this[loc0_slash+1:]
+            #print('2 line_this: {}'.format(line_this))
 
         return None
 
@@ -731,7 +724,6 @@ def format_content_src(lines_src:list, language:str, ext: str):
     # lhtml_style 0: pre {...}, 1: body {...}, 2: * { font-size ... }
     lhtml_style = lhtml[lhtml.index('<style>\n')+2:lhtml.index('</style>\n')-1][3:]
     lhtml_body = lhtml[lhtml.index("<pre id='vimCodeElement'>\n")+1:lhtml.index("</pre>\n")]
-    print(lhtml_body[0])
 
     # read style
     lst_className_short = []
@@ -742,7 +734,6 @@ def format_content_src(lines_src:list, language:str, ext: str):
             if className.index(language) == 0:
                 is_ok = True
         if not is_ok:
-            print(f'className short: {className}')
             lst_className_short.append(className)
             className = language + className
 

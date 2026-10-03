@@ -144,9 +144,7 @@ span.word-r {
 }
 
 span.var {
-  /*background-color: rgba(47,44,38,0.40);*/
-  /*background-color: rgba(220,220,220);*/
-  color: rgba(220,180,180);
+  color: rgba(255,180,180);
   /*font-family: 'Fira Mono', 'consolas', '游ゴシック';*/
   font-family: 'Lucida console', 'Sans serif', '游ゴシック';
   padding: 0px 2px;
@@ -154,23 +152,20 @@ span.var {
   margin-right: 3px;
 }
 span.var-n {
-  background-color: rgba(220,220,220);
-  color: rgba(220,12,12);
+  color: rgba(255,12,12);
   font-family: 'Lucida console', 'Sans serif', '游ゴシック';
   padding: 0px 2px;
   margin-left: 0px;
   margin-right: 0px;
 }
 span.var-l {
-  background-color: rgba(220,220,220);
-  color: rgba(220,12,12);
+  color: rgba(255,12,12);
   font-family: 'Lucida console', 'Sans serif', '游ゴシック';
   padding: 0px 2px;
   margin-left: 1px;
 }
 span.var-r {
-  background-color: rgba(220,220,220);
-  color: rgba(220,12,12);
+  color: rgba(255,12,12);
   font-family: 'Lucida console', 'Sans serif', '游ゴシック';
   padding: 0px 2px;
   margin-right: 1px;
@@ -184,20 +179,17 @@ span.src {
   margin-right: 3px;
 }
 span.src-n {
-  /*font-family: 'Fira Mono', 'consolas', '游ゴシック';*/
   font-family: "Cascadia Mono", '游ゴシック';
   padding: 0px 2px;
   margin-left: 0px;
   margin-right: 0px;
 }
 span.src-l {
-  /*font-family: 'Fira Mono', 'consolas', '游ゴシック';*/
   font-family: "Cascadia Mono", '游ゴシック';
   padding: 0px 2px;
   margin-left: 1px;
 }
 span.src-r {
-  /*font-family: 'Fira Mono', 'consolas', '游ゴシック';*/
   font-family: "Cascadia Mono", '游ゴシック';
   padding: 0px 2px;
   margin-right: 1px;
