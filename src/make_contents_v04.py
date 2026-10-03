@@ -83,7 +83,7 @@ def mklist_inlines():
       mkdict_cls(0, 'span', 'vl'    , 'var-l'  ),
       mkdict_cls(0, 'span', 'vr'    , 'var-r'  ),
       mkdict_cls(0, 'span', 'vn'    , 'var-n'  ),
-      mkdict_cls(0, 'span', 's'     , 'var'    ),  # both margins
+      mkdict_cls(0, 'span', 's'     , 'src'    ),  # both margins
       mkdict_cls(0, 'span', 'sl'    , 'src-l'  ),
       mkdict_cls(0, 'span', 'sr'    , 'src-r'  ),
       mkdict_cls(0, 'span', 'sn'    , 'src-n'  ),
@@ -1668,7 +1668,7 @@ def format_index_body_main(comps: list):
                 comp_below[kw.tree] += ' ├─ '
                 if j == idx_comp_child_youngest:
                     for comp_below in comps[idx_comp_child_youngest+1:]:
-                        comp_below += '    '
+                        comp_below += '&nbsp;'
                     break
             elif comp_below[kw.depth] <= comp[kw.depth]:
                 break
@@ -1679,7 +1679,10 @@ def format_index_body_main(comps: list):
 
             # Replace bottom branch
             tree = comps[idx_comp_child_youngest][kw.tree]
-            comps[idx_comp_child_youngest][kw.tree] = tree[:len(tree)-len(' ├─ ')] + ' └─ '
+            if tree[-4:] == ' ├─ ':
+                comps[idx_comp_child_youngest][kw.tree] = tree[:len(tree)-len(' ├─ ')] + ' └─ '
+            else:
+                comps[idx_comp_child_youngest][kw.tree] = tree[:len(tree)] + ' └─ '
 
             # Remove isolated branch
             if idx_comp_child_youngest < len(comps):
@@ -1687,7 +1690,7 @@ def format_index_body_main(comps: list):
                     if comp_below[kw.depth] <= comp[kw.depth]:
                         break
                     tree = comp_below[kw.tree]
-                    comp_below[kw.tree] = comp_below[kw.tree][:len(tree)-len(' │  ')] + '    '
+                    comp_below[kw.tree] = comp_below[kw.tree][:len(tree)-len(' │  ')] + '&nbsp;'*8
 
     for comp in comps:
         if comp[kw.depth] == 0:
