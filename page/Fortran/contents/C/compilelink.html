@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>コンパイルリンク</title>
+  <meta name="viewport" content="width=device-width">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Sheet" content="text/css">
+  <link rel="icon" href="https://akiratakeshima.github.io/img/icon/favicon_03-5.ico" />
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/fortran.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/c.css" media="all">
+  <script type="text/javascript" src="{const.url}/js/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+  <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+
+<body>
+
+  <!-- Title -->
+  <ul class='indexBox'>
+    <div class='title'>
+      コンパイルリンク
+    </div>
+  </ul>
+
+  <!-- Route -->
+  <ul class='indexBox'>
+    <div class='route'>
+      <u><a href="https://akiratakeshima.github.io/index.html">Top</a></u>
+      &gt; <u><a href="https://akiratakeshima.github.io/page/Fortran/index.html">Fortran</a></u>
+ &gt; C
+    </div>
+  </ul>
+
+<!-- Contents -->
+<ul class='contentBox'>
+<div class='index'>
+手順
+</div>
+<div class='contents'>
+  <span class='word'>fortran</span>と<span class='word'>C</span>のソースコードをそれぞれコンパイルしてオブジェクトファイルを作る.
+  それらをコンパイルリンクして実行ファイルを作る.
+</div>
+<div class='index'>
+<span class='word'>C</span>の関数を<span class='word'>Fortran</span>で呼び出す
+</div>
+<div class='contents'>
+  <span class='word'>Fortran</span>のメインプログラムで<span class='word'>C</span>の関数を呼び出す.
+
+<span class='index1'><span class='word'>C</span>の関数</span>
+  ・<span class='word'>C</span>には<span class='word'>Fortran</span>のような関数とサブルーチンの区別は無く, <span class='word'>Fortran</span>におけるサブルーチンは<span class='word'>C</span>における戻り値の無い関数に相当する.
+  ・<span class='word'>C</span>の関数を<span class='word'>Fortran</span>で呼び出せるようにするには, 関数名の最後にアンダーバーを付ける.
+  ・引数はポインターとして受け渡されるので, <span class='var'>*</span>を付ける.
+
+C func.c
+<pre><code class="language-c"><span class="Comment">// 引数同士を掛けた値を返す</span>
+<span class="cType">int</span> mul_( <span class="cType">int</span> *a,  <span class="cType">int</span> *b ){
+  <span class="Statement">return</span> *a * *b;
+}
+</code></pre>
+<span class='index1'><span class='word'>Fortran</span>のプログラム</span>
+  ・オブジェクトファイルで定義された関数を用いる場合は変数として宣言しておかなければならない (これはオブジェクトファイルのソースコードが<span class='word'>C</span>でも<span class='word'>Fortran</span>でも同じ).
+  ・サブルーチン (戻り値が<span class='var'>void</span>の<span class='word'>C</span>の関数, または/w{Fortran}のサブルーチン) であれば変数宣言は不要.
+
+Fortran main.f90
+<pre><code class="language-fortran"><span class="fortranUnitHeader">program</span> main
+  <span class="fortranType">implicit</span> <span class="fortranType">none</span>
+  <span class="fortranType">integer</span> :: mul
+  <span class="fortranType">integer</span> :: a, b, c
+
+  a <span class="fortranOperator">=</span> <span class="Number">2</span>
+  b <span class="fortranOperator">=</span> <span class="Number">3</span>
+  c <span class="fortranOperator">=</span> mul(a, b)
+  <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>,<span class="String">'a:'</span>,a,<span class="String">', b:'</span>,b,<span class="String">', a*b:'</span>,c
+<span class="fortranUnitHeader">end program</span> main
+</code></pre>
+<span class='index1'>コンパイルと実行</span>
+<pre><code class="language-plaintext">$ icc -c func.c
+$ ifort -c main.f90
+$ ifort -o main main.o func.o
+$ ./main
+ a:           2 , b:           3 , a*b:           6
+</code></pre>
+</div>
+<div class='index'>
+<span class='word'>Fortran</span>の関数を<span class='word'>C</span>で呼び出す
+</div>
+<div class='contents'><span class='index1'><span class='word'>Fortran</span>の関数</span>
+
+Fotran func.f90
+<pre><code class="language-fortran"><span class="fortranUnitHeader">function</span> mul(a,b) <span class="fortranUnitHeader">result</span>(c)
+  <span class="fortranType">implicit</span> <span class="fortranType">none</span>
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">in</span>) :: a, b
+  <span class="fortranType">integer</span>             :: c
+
+  c <span class="fortranOperator">=</span> a <span class="fortranOperator">*</span> b
+<span class="fortranUnitHeader">end function</span> mul
+</code></pre>
+<span class='index1'><span class='word'>C</span>のプログラム</span>
+  ・<span class='word'>Fortran</span>ではサブルーチンとして定義する.
+  ・<span class='word'>C</span>では<span class='word'>extern</span>して定義する. その際名前の最後にアンダーバーを付ける.
+
+C main.c
+<pre><code class="language-c"><span class="Include">#include </span><span class="String">&lt;stdio.h&gt;</span>
+
+<span class="cStorageClass">extern</span> <span class="cType">void</span> mul_(<span class="cType">int</span> *a, <span class="cType">int</span> *b, <span class="cType">int</span> *c);
+
+<span class="cType">int</span> main(){
+  <span class="cType">int</span> a = <span class="cNumber">2</span>;
+  <span class="cType">int</span> b = <span class="cNumber">3</span>;
+  <span class="cType">int</span> c;
+  mul_(&amp;a, &amp;b, &amp;c);
+  printf(<span class="String">&quot;c: </span><span class="cFormat">%d</span><span class="cSpecial">\n</span><span class="String">&quot;</span>, c);
+}
+</code></pre>
+<span class='index1'>コンパイルと実行</span>
+<pre><code class="language-plaintext">$ icc -c main.c
+$ ifort -c func.f90
+$ icc -o main main.o func.o
+$ ./main
+c: 6
+</code></pre>
+</div>
+</ul>
+</body>
+</html>
+

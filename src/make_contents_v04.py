@@ -746,33 +746,35 @@ def format_content_src(lines_src:list, language:str, ext: str):
     print(lhtml_body[0])
 
     # read style
-    className_org2new = {}
+    lst_className_short = []
     for l in lhtml_style:
-        className_org = l.split()[0][1:]
-        className = None
-        if language in className_org:
-            if className_org.index(language) == 0:
-                className = className_org
-        if className is None:
-            className = language + className_org
-            className_org2new[className_org] = className
-        className_short = className[len(language)+1:]
+        className = l.split()[0][1:]
+        is_ok = False
+        if language in className:
+            if className.index(language) == 0:
+                is_ok = True
+        if not is_ok:
+            print(f'className short: {className}')
+            lst_className_short.append(className)
+            className = language + className
 
         style = l[l.index('{'):l.index('}')+1]
 
         if className not in vimStyle[language].keys():
-            if className not in vimStyle_notfound[language].keys():
-                vimStyle_notfound[language][className] = style
-                print(f'className {className} not found. style: {style}')
+            vimStyle_notfound[language][className] = style
 
     # modify class names in body
     for i, l in enumerate(lhtml_body):
-        if f'<span class="' not in line: continue
-        for corg, cnew in className_org2new.items():
-            key = f'<span class="{corg}">'
-            if key in l:
-                loc = l.index(key)
-                l = l[:loc] + f'<span class="{cnew}">' + l[loc+len(key)+1:]
+        if f'<span class="' not in l: continue
+        is_ok = False
+        while not is_ok:
+            is_ok = True
+            for cshort in lst_className_short:
+                key = f'<span class="{cshort}">'
+                if key in l:
+                    is_ok = False
+                    loc = l.index(key)
+                    l = l[:loc] + f'<span class="{language}{cshort}">' + l[loc+len(key):]
         lhtml_body[i] = l
     
     for l in lhtml_body:

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>実対称行列の固有値問題</title>
+  <meta name="viewport" content="width=device-width">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Sheet" content="text/css">
+  <link rel="icon" href="https://akiratakeshima.github.io/img/icon/favicon_03-5.ico" />
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/fortran.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/c.css" media="all">
+  <script type="text/javascript" src="{const.url}/js/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+  <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+
+<body>
+
+  <!-- Title -->
+  <ul class='indexBox'>
+    <div class='title'>
+      実対称行列の固有値問題
+    </div>
+  </ul>
+
+  <!-- Route -->
+  <ul class='indexBox'>
+    <div class='route'>
+      <u><a href="https://akiratakeshima.github.io/index.html">Top</a></u>
+      &gt; <u><a href="https://akiratakeshima.github.io/page/Fortran/index.html">Fortran</a></u>
+ &gt; LAPACK &gt; サンプル
+    </div>
+  </ul>
+
+<!-- Contents -->
+<ul class='contentBox'>
+<div class='index'>
+使用するルーチン
+</div>
+<div class='contents'>
+DSYEVR
+  + <a class='colored' href="https://www.netlib.org/lapack/explore-html/d1/d56/group__heevr_gaa334ac0c11113576db0fc37b7565e8b5.html#gaa334ac0c11113576db0fc37b7565e8b5">LAPACK: dsyevr</a>
+</div>
+<div class='index'>
+<span class='word'>Fortran90</span>用インターフェースのサンプル
+</div>
+<div class='contents'>
+  ほぼ<span class='word'>NAG</span>のサンプルのまま.
+  ライブラリとして使いやすいようサブルーチン化しただけ.
+
+/srcn{subroutine eig_sym(a, m, w, z, info)}
+
+  /srcn{a} [in] <span class='it-n'>real(8) array of shape (n,n) (n>0)</span>
+    対称行列.
+
+  /srcn{m} [out] <span class='it-n'>integer</span>
+    見つかった固有値の数. 0 <= m <= n.
+
+  /srcn{w} [out] <span class='it-n'>real(8) array of shape (n)</span>
+    固有値. <span class='word'>1</span>から<span class='word'>m</span>番目までの要素に固有値が入っている.
+
+  /srcn{z} [out] <span class='it-n'>real(8) array of shape (n,n)</span>
+    固有ベクトル. <span class='word'>1</span>から<span class='word'>m</span>番目の列に固有ベクトルが入っている.
+
+  /srcn{info} [out] <span class='it-n'>integer</span>
+    = 0: 成功
+    < 0: <span class='word'>info = -i</span>のとき, <span class='word'>i</span>番目の引数が不正 (よく分からん)
+    > 0: 内部エラー
+
+<pre><code class="language-fortran"><span class="fortranUnitHeader">subroutine</span> eig_sym(a, m, w, z, info)
+  <span class="fortranType">implicit</span> <span class="fortranType">none</span>
+<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">in</span>)  :: a(:,:)  <span class="Comment">!(n,n)</span>
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">out</span>) :: m
+<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">out</span>) :: w(:)    <span class="Comment">!(n)</span>
+<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">out</span>) :: z(:,:)  <span class="Comment">!(n,n)</span>
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">out</span>) :: info
+
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">parameter</span> :: nb <span class="fortranOperator">=</span> <span class="Number">64</span>
+  <span class="fortranType">character</span>(<span class="Number">1</span>), <span class="fortranVariableAttribute">parameter</span> :: jobz <span class="fortranOperator">=</span> <span class="String">'V'</span>
+  <span class="fortranType">character</span>(<span class="Number">1</span>), <span class="fortranVariableAttribute">parameter</span> :: <span class="fortranIntrinsic">range</span> <span class="fortranOperator">=</span> <span class="String">'I'</span>
+  <span class="fortranType">character</span>(<span class="Number">1</span>), <span class="fortranVariableAttribute">parameter</span> :: uplo <span class="fortranOperator">=</span> <span class="String">'U'</span>
+<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: a_(:,:)
+<span class="fortranType">  real</span>(<span class="Number">8</span>) :: abstol
+  <span class="fortranType">integer</span> :: n, lda, ldz
+  <span class="fortranType">integer</span> :: liwork, lwork
+  <span class="fortranType">integer</span> :: il, iu
+<span class="fortranType">  real</span>(<span class="Number">8</span>) :: vl, vu
+<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: work(:)
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">allocatable</span> :: iwork(:)
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">allocatable</span> :: isuppz(:)
+<span class="fortranType">  real</span>(<span class="Number">8</span>) :: dummy(<span class="Number">1</span>) <span class="Comment">!dummy of work</span>
+  <span class="fortranType">integer</span> :: idum(<span class="Number">1</span>)  <span class="Comment">!dummy of iwork</span>
+
+  n <span class="fortranOperator">=</span> <span class="fortranIntrinsic">size</span>(a,<span class="Number">1</span>)
+  <span class="fortranCall">allocate</span>(a_(n,n))
+  a_ <span class="fortranOperator">=</span> a
+
+  il <span class="fortranOperator">=</span> <span class="Number">1</span>
+  iu <span class="fortranOperator">=</span> n
+
+  lda <span class="fortranOperator">=</span> n
+  ldz <span class="fortranOperator">=</span> n
+  m <span class="fortranOperator">=</span> n
+  <span class="fortranCall">allocate</span>(isuppz(<span class="Number">2</span><span class="fortranOperator">*</span>m))
+
+  <span class="Comment">! Use routine workspace query to get optimal workspace.</span>
+  lwork <span class="fortranOperator">=</span> <span class="fortranOperator">-</span><span class="Number">1</span>
+  liwork <span class="fortranOperator">=</span> <span class="fortranOperator">-</span><span class="Number">1</span>
+  <span class="fortranCall">call</span> DSYEVR(jobz, <span class="fortranIntrinsic">range</span>, uplo, <span class="fortranContinueMark">&amp;</span>
+              n, a_, lda, vl, vu, il, iu, abstol, <span class="fortranContinueMark">&amp;</span>
+              m, w, z, ldz, isuppz, <span class="fortranContinueMark">&amp;</span>
+              dummy, lwork, idum, liwork, info)
+
+  <span class="Comment">! Make sure that there is enough workspace for block size nb.</span>
+  lwork <span class="fortranOperator">=</span> <span class="fortranIntrinsic">max</span>((nb<span class="fortranOperator">+</span><span class="Number">6</span>)<span class="fortranOperator">*</span>n, <span class="fortranIntrinsic">nint</span>(dummy(<span class="Number">1</span>)))
+  liwork <span class="fortranOperator">=</span> <span class="fortranIntrinsic">max</span>(<span class="Number">10</span><span class="fortranOperator">*</span>n, idum(<span class="Number">1</span>))
+  <span class="fortranCall">allocate</span>(work(lwork), iwork(liwork))
+
+  <span class="Comment">! Set the absolute error tolerance for eigenvalue. With ABSTOL</span>
+  <span class="Comment">! set to zero, the default value is used instead.</span>
+  abstol <span class="fortranOperator">=</span> <span class="Float">0.d0</span>
+
+  <span class="Comment">! Solve the symmetric eigenvalue problem.</span>
+  <span class="fortranCall">call</span> DSYEVR(jobz, <span class="fortranIntrinsic">range</span>, uplo, <span class="fortranContinueMark">&amp;</span>
+              n, a_, lda, vl, vu, il, iu, abstol, <span class="fortranContinueMark">&amp;</span>
+              m, w, z, ldz, isuppz, <span class="fortranContinueMark">&amp;</span>
+              work, lwork, iwork, liwork, info)
+
+  <span class="Conditional">if</span>( m <span class="fortranOperator">&lt;</span> n )<span class="Conditional">then</span>
+    w(m<span class="fortranOperator">+</span><span class="Number">1</span>:n) <span class="fortranOperator">=</span> <span class="Float">0.d0</span>
+    z(:,m<span class="fortranOperator">+</span><span class="Number">1</span>:n) <span class="fortranOperator">=</span> <span class="Float">0.d0</span>
+  <span class="Conditional">endif</span>
+<span class="fortranUnitHeader">end subroutine</span> eig_sym
+</code></pre>
+</div>
+<div class='index'>
+テストプログラム
+</div>
+<div class='contents'>
+<div class='mathjax'><nobr>A = \begin{pmatrix}
+1 & 2 & 3 & 4 \\
+2 & 2 & 3 & 4 \\
+3 & 3 & 3 & 4 \\
+4 & 4 & 4 & 4 \\
+\end{pmatrix}</nobr></div>
+<pre><code class="language-fortran"><span class="fortranUnitHeader">program</span> main
+  <span class="fortranType">implicit</span> <span class="fortranType">none</span>
+  <span class="fortranType">integer</span> :: n
+<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: A(:,:)
+<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: U(:,:)
+<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: w(:)
+<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: L(:,:)
+<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: Uinv(:,:)
+<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: B(:,:)
+  <span class="fortranType">integer</span> :: m
+  <span class="fortranType">integer</span> :: info
+  <span class="fortranType">integer</span> :: i
+  <span class="fortranType">character</span>(<span class="Number">64</span>) :: wfmt
+
+  n <span class="fortranOperator">=</span> <span class="Number">4</span>
+  <span class="fortranCall">allocate</span>(A(n,n))
+  <span class="fortranCall">allocate</span>(w(n))
+  <span class="fortranCall">allocate</span>(U(n,n))
+  A(<span class="Number">1</span>,:) <span class="fortranOperator">=</span> (<span class="fortranOperator">/</span><span class="Number">1</span>,<span class="Number">2</span>,<span class="Number">3</span>,<span class="Number">4</span><span class="fortranOperator">/</span>)
+  A(<span class="Number">2</span>,:) <span class="fortranOperator">=</span> (<span class="fortranOperator">/</span><span class="Number">2</span>,<span class="Number">2</span>,<span class="Number">3</span>,<span class="Number">4</span><span class="fortranOperator">/</span>)
+  A(<span class="Number">3</span>,:) <span class="fortranOperator">=</span> (<span class="fortranOperator">/</span><span class="Number">3</span>,<span class="Number">3</span>,<span class="Number">3</span>,<span class="Number">4</span><span class="fortranOperator">/</span>)
+  A(<span class="Number">4</span>,:) <span class="fortranOperator">=</span> (<span class="fortranOperator">/</span><span class="Number">4</span>,<span class="Number">4</span>,<span class="Number">4</span>,<span class="Number">4</span><span class="fortranOperator">/</span>)
+
+  <span class="fortranCall">call</span> eig_sym(A, m, w, U, info)
+
+  <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, <span class="String">'info'</span>, info
+
+  <span class="fortranReadWrite">write</span>(wfmt,<span class="String">&quot;('(',i0,'(1x,f10.7))')&quot;</span>) m
+  <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, <span class="String">'Eigenvalues'</span>
+  <span class="fortranReadWrite">print</span> wfmt, w(<span class="Number">1</span>:m)
+
+  <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, <span class="String">'Eigenvectors'</span>
+  <span class="Repeat">do</span> i <span class="fortranOperator">=</span> <span class="Number">1</span>, m
+    <span class="fortranReadWrite">print</span> wfmt, U(i,:)
+  <span class="Repeat">enddo</span>
+
+  <span class="fortranCall">allocate</span>(B(n,n))
+  <span class="fortranCall">allocate</span>(L(n,n))
+  <span class="fortranCall">allocate</span>(Uinv(n,n))
+  L <span class="fortranOperator">=</span> diag(w)
+  <span class="fortranCall">call</span> inv(U, Uinv, info)
+  B <span class="fortranOperator">=</span> U <span class="fortranOperator">.mul.</span> L <span class="fortranOperator">.mul.</span> Uinv
+
+  <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, <span class="String">'ULU-1'</span>
+  <span class="Repeat">do</span> i <span class="fortranOperator">=</span> <span class="Number">1</span>, n
+    <span class="fortranReadWrite">print</span> wfmt, B(i,:)
+  <span class="Repeat">enddo</span>
+<span class="fortranUnitHeader">end program</span> main
+</code></pre>
+実行結果
+<pre><code class="language-plaintext"> info           0
+ Eigenvalues
+ -2.0531158 -0.5146428 -0.2943265 12.8620850
+ Eigenvectors
+ -0.7003490 -0.5143736  0.2766776 -0.4103420
+ -0.3592338  0.4851033 -0.6633588 -0.4422453
+  0.1568515  0.5419782  0.6504247 -0.5085321
+  0.5965400 -0.4542623 -0.2456669 -0.6143563
+ ULU-1
+  1.0000000  2.0000000  3.0000000  4.0000000
+  2.0000000  2.0000000  3.0000000  4.0000000
+  3.0000000  3.0000000  3.0000000  4.0000000
+  4.0000000  4.0000000  4.0000000  4.0000000
+</code></pre>
+</div>
+</ul>
+
+<!-- References -->
+<ul class='contentBox'>
+<div class='index'>References</div>
+<div class='ref'>
+LAPACK: dsyevr
+  + <a href="https://www.netlib.org/lapack/explore-html/d1/d56/group__heevr_gaa334ac0c11113576db0fc37b7565e8b5.html#gaa334ac0c11113576db0fc37b7565e8b5">https://www.netlib.org/lapack/explore-html/d1/d56/group__heevr_gaa334ac0c11113576db0fc37b7565e8b5.html#gaa334ac0c11113576db0fc37b7565e8b5</a>
+</div>
+</ul>
+</body>
+</html>
+

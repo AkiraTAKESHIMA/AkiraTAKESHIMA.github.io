@@ -7,8 +7,11 @@
   <meta http-equiv="Content-Style-Sheet" content="text/css">
   <link rel="icon" href="https://akiratakeshima.github.io/img/icon/favicon_03-5.ico" />
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/common.css" media="all">
-  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/hi/styles/vim-papercolor-like.css" media="all">
-  <script type="text/javascript" src="https://akiratakeshima.github.io/js/highlight.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/fortran.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/python.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/c.css" media="all">
+  <script type="text/javascript" src="{const.url}/js/highlight.min.js"></script>
   <script>hljs.highlightAll();</script>
   <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
@@ -73,37 +76,37 @@
 　<span class='word'><a class='colored' href="https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.figure.html#matplotlib.pyplot.figure">pyplot.figure</a> API</span>で指定可能な引数をキーワードで指定する．
 
 　<span class='word'>import</span>
-<pre><code class="language-python">import numpy as np
-import matplotlib.pyplot as plt
-import cartopy.crs as ccrs
+<pre><code class="language-python"><span class="pythonInclude">import</span> numpy <span class="pythonStatement">as</span> np
+<span class="pythonInclude">import</span> matplotlib.pyplot <span class="pythonStatement">as</span> plt
+<span class="pythonInclude">import</span> cartopy.crs <span class="pythonStatement">as</span> ccrs
 </code></pre>
 　まずはグラフ用に適当なデータを作る．
-<pre><code class="language-python">x = np.linspace(0, 2*np.pi, 400)
-y = np.sin(x**2)
+<pre><code class="language-python">x = np.linspace(<span class="pythonNumber">0</span>, <span class="pythonNumber">2</span>*np.pi, <span class="pythonNumber">400</span>)
+y = np.sin(x**<span class="pythonNumber">2</span>)
 </code></pre>
 <span class='index1'>投影法を指定する</span>
 　<span class='word'>subplot_kw</span>に<span class='word'>dict</span>型で<span class='word'>projection</span>を与える．
 　<span class='word'>projection</span>には<span class='word'>str</span>，または<span class='word'>cartopy.crs</span>の<span class='word'>Projection</span>などを与える．
-<pre><code class="language-python">fig, (ax1, ax2) = plt.subplots(1, 2, subplot_kw=dict(projection='polar'))
+<pre><code class="language-python">fig, (ax1, ax2) = plt.subplots(<span class="pythonNumber">1</span>, <span class="pythonNumber">2</span>, subplot_kw=<span class="pythonBuiltin">dict</span>(projection=<span class="pythonString">'</span><span class="pythonString">polar</span><span class="pythonString">'</span>))
 ax1.plot(x, y)
 ax2.scatter(x, y)
 </code></pre>
 <a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/subplots/projection_01.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/subplots/projection_01.png"></a>
 
-<pre><code class="language-python">fig, ax = plt.subplots(1, 2, subplot_kw=dict(projection=ccrs.Robinson()))
-ax[0].coastlines(linewidth=0.7)
-ax[1].coastlines(linestyle='dashed')
+<pre><code class="language-python">fig, ax = plt.subplots(<span class="pythonNumber">1</span>, <span class="pythonNumber">2</span>, subplot_kw=<span class="pythonBuiltin">dict</span>(projection=ccrs.Robinson()))
+ax[<span class="pythonNumber">0</span>].coastlines(linewidth=<span class="pythonNumber">0.7</span>)
+ax[<span class="pythonNumber">1</span>].coastlines(linestyle=<span class="pythonString">'</span><span class="pythonString">dashed</span><span class="pythonString">'</span>)
 </code></pre>
 <a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/subplots/projection_02.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/subplots/projection_02.png"></a>
 
 <span class='index1'>レイアウトを調整する</span>
 　<span class='word'>left, right, bottom, top</span>で<span class='word'>subplots</span>の描画領域に対する相対位置を，<span class='word'>wspace, hspace</span>で各<span class='word'>subplot</span>の間の広さを指定する．
 　<span class='word'>wspace</span>は軸の幅の平均値に対する<span class='word'>subplot</span>間の横方向の間隔の比率．<span class='word'>hspace</span>も同様，ただし縦方向に関して指定する．
-<pre><code class="language-python">grd_kw = dict(left=0.2, right=0.8, bottom=0.3, top=0.9,
-              wspace=0.3, hspace=0.2)
-fig, ax = plt.subplots(2, 2, figsize=(8,6), gridspec_kw=grd_kw)
-ax[0,0].plot(x, y)
-plt.savefig(figname, bbox_inches='tight', pad_inches=0.1, dpi=100)
+<pre><code class="language-python">grd_kw = <span class="pythonBuiltin">dict</span>(left=<span class="pythonNumber">0.2</span>, right=<span class="pythonNumber">0.8</span>, bottom=<span class="pythonNumber">0.3</span>, top=<span class="pythonNumber">0.9</span>,
+              wspace=<span class="pythonNumber">0.3</span>, hspace=<span class="pythonNumber">0.2</span>)
+fig, ax = plt.subplots(<span class="pythonNumber">2</span>, <span class="pythonNumber">2</span>, figsize=(<span class="pythonNumber">8</span>,<span class="pythonNumber">6</span>), gridspec_kw=grd_kw)
+ax[<span class="pythonNumber">0</span>,<span class="pythonNumber">0</span>].plot(x, y)
+plt.savefig(figname, bbox_inches=<span class="pythonString">'</span><span class="pythonString">tight</span><span class="pythonString">'</span>, pad_inches=<span class="pythonNumber">0.1</span>, dpi=<span class="pythonNumber">100</span>)
 </code></pre>
 <a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/subplots/layout.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/subplots/layout.png"></a>
 
@@ -111,14 +114,14 @@ plt.savefig(figname, bbox_inches='tight', pad_inches=0.1, dpi=100)
 　描画領域の色は<span class='word'>plt.figure</span>と同じように<span class='word'>facecolor</span>などで指定する（ここでは<span class='word'>dict</span>にして与えているが，直接与えても良い）．
 　各<span class='word'>subplot</span>の色は<span class='word'>subplot_kw</span>で与える．
 　<span class='word'>subplot</span>別に与える場合は<span class='word'>set_facecolor</span>を使う．
-<pre><code class="language-python">sub_kw = dict(facecolor='azure')
-fig_kw = dict(facecolor='silver')
-fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, subplot_kw=sub_kw, **fig_kw)
+<pre><code class="language-python">sub_kw = <span class="pythonBuiltin">dict</span>(facecolor=<span class="pythonString">'</span><span class="pythonString">azure</span><span class="pythonString">'</span>)
+fig_kw = <span class="pythonBuiltin">dict</span>(facecolor=<span class="pythonString">'</span><span class="pythonString">silver</span><span class="pythonString">'</span>)
+fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(<span class="pythonNumber">2</span>, <span class="pythonNumber">2</span>, subplot_kw=sub_kw, **fig_kw)
 ax1.plot(x, y)
 ax2.scatter(x, y)
-ax4.set_facecolor('pink')
-ax[0,1].scatter(x, y)
-plt.savefig(figname, bbox_inches='tight', pad_inches=0.1, dpi=100)
+ax4.set_facecolor(<span class="pythonString">'</span><span class="pythonString">pink</span><span class="pythonString">'</span>)
+ax[<span class="pythonNumber">0</span>,<span class="pythonNumber">1</span>].scatter(x, y)
+plt.savefig(figname, bbox_inches=<span class="pythonString">'</span><span class="pythonString">tight</span><span class="pythonString">'</span>, pad_inches=<span class="pythonNumber">0.1</span>, dpi=<span class="pythonNumber">100</span>)
 </code></pre>
 <a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/subplots/colors.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/subplots/colors.png"></a>
 </div>

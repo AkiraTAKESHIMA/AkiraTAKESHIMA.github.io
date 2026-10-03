@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>システムコマンドの結果を受け取る</title>
+  <meta name="viewport" content="width=device-width">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Sheet" content="text/css">
+  <link rel="icon" href="https://akiratakeshima.github.io/img/icon/favicon_03-5.ico" />
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/fortran.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/c.css" media="all">
+  <script type="text/javascript" src="{const.url}/js/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+  <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+
+<body>
+
+  <!-- Title -->
+  <ul class='indexBox'>
+    <div class='title'>
+      システムコマンドの結果を受け取る
+    </div>
+  </ul>
+
+  <!-- Route -->
+  <ul class='indexBox'>
+    <div class='route'>
+      <u><a href="https://akiratakeshima.github.io/index.html">Top</a></u>
+      &gt; <u><a href="https://akiratakeshima.github.io/page/Fortran/index.html">Fortran</a></u>
+ &gt; C
+    </div>
+  </ul>
+
+<!-- Contents -->
+<ul class='contentBox'>
+<div class='index'>
+システムコマンドの実行結果が欲しい
+</div>
+<div class='contents'>
+  <span class='word'>Fortran</span>にはシステムコマンドを実行するサブルーチン<span class='var'>execute_command_line</span> (古いものだと<span class='var'>system</span>) があるが, これは本当にシステムを実行するだけで, その結果を得ることはできない.
+  ファイルの存在は<span class='var'>access</span>関数で判定できるが, ディレクトリの存在の判定はできないし, <span class='var'>ls</span>コマンドの結果なども取得できない.
+  (ディレクトリの存在の判定に限って言えば, 実用上は色々と対処の仕方はあるものの，あまり綺麗な方法ではない)
+
+  というわけで<span class='word'>C</span>に出動していただく.
+  <span class='word'>C</span>には<span class='var'>popen</span> (ピーオープン) という, ファイルを開くような感覚でプロセスを開いてコマンドを実行し, その結果を文字列として受け取ったり, さらに別のプロセスに受け渡したりすることができる, なんとも便利な関数がある. <span class='word'>Fortran</span>にも欲しい.
+  詳細や具体例は参考リンクを参照していただくとして, 今回はそれを<span class='word'>Fortran</span>で受け取るプログラムを作ってみる.
+
+  参照 <span class='word'>popen</span>について:
+    + <a class='colored' href="https://www.aihara.co.jp/~junt/program/popen.html">popen / programming memo</a>
+    + <a class='colored' href="http://www.ncad.co.jp/~komata/c-kouza3.htm">コンピューター：C言語講座：fork,exec,pipeについて</a>
+    + <a class='colored' href="https://peng225.hatenablog.com/entry/2021/05/10/183314">popen関数の挙動まとめ - ペンギンは空を飛ぶ</a>
+</div>
+<div class='index'>
+ターミナル画面の幅を取得するサブルーチンを実装する
+</div>
+<div class='contents'>
+  今回の目的はターミナル画面の幅を取得すること.
+  ターミナル画面の幅はシステムコマンド<span class='var'>tput cols</span>で文字数として取得できる (ちなみに高さ, つまり行数は<span class='var'>tput lines</span>).
+
+<pre><code class="language-plaintext">$ tput cols
+99
+</code></pre>
+  まず<span class='word'>C</span>でこのコマンドを実行してその結果を文字配列に格納する関数:
+<pre><code class="language-c"><span class="Include">#include </span><span class="String">&lt;stdio.h&gt;</span>
+<span class="Include">#include </span><span class="String">&lt;string.h&gt;</span>
+
+<span class="cType">void</span> c_system_tput_cols_( <span class="cType">char</span> *str, <span class="cType">int</span> *clen, <span class="cType">int</span> *stat ){
+  <span class="cType">FILE</span> *fp;
+  <span class="cType">int</span> MAXLINE = <span class="cNumber">1024</span>;
+
+  <span class="cConditional">if</span>( (fp=popen(<span class="String">&quot;tput cols&quot;</span>, <span class="String">&quot;r&quot;</span>)) == <span class="cConstant">NULL</span> ){
+    *stat = <span class="cNumber">1</span>;
+    strcpy(<span class="String">&quot;&quot;</span>, str);
+    *clen = <span class="cNumber">0</span>;
+    <span class="Statement">return</span>;
+  }
+
+  *stat = <span class="cNumber">0</span>;
+  fgets(str, MAXLINE, fp);
+  c_lntrim_(str);
+  *clen = strlen(str);
+  <span class="Statement">return</span>;
+}
+</code></pre>
+  <span class='var'>fp = popen("tput cols", "r")</span>
+でシステムコマンド<span class='var'>tput cols</span>を実行し, それを読み込む.
+  実行できなかった場合はステータス<span class='var'>*stat</span>に/v{1}を入れて返す.
+  実行できた場合はその結果を文字配列<span class='var'>str</span>に格納し, さらにその長さを取得して返す.
+
+  次にこれを受け取って幅を数字にして返す<span class='word'>Fortran</span>サブルーチン:
+<pre><code class="language-fortran"><span class="fortranUnitHeader">subroutine</span> get_terminal_nCols(n, stat)
+  <span class="fortranType">implicit</span> <span class="fortranType">none</span>
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">out</span>) :: nCols
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">out</span>) :: stat
+
+  <span class="fortranType">character</span>(<span class="Number">32</span>), <span class="fortranVariableAttribute">pointer</span> :: s
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">pointer</span> :: cl
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">pointer</span> :: cstat
+  <span class="fortranType">integer</span> :: ios
+  <span class="Comment">!-------------------------------------------------------------</span>
+  stat <span class="fortranOperator">=</span> <span class="Number">0</span>
+
+  <span class="fortranCall">allocate</span>(s)
+  <span class="fortranCall">allocate</span>(cl)
+  <span class="fortranCall">allocate</span>(cstat)
+
+  <span class="fortranCall">call</span> c_system_tput_cols(s, cl, cstat)
+
+  <span class="Conditional">if</span>( cstat <span class="fortranOperator">==</span> <span class="Number">0</span> )<span class="Conditional">then</span>
+    <span class="fortranReadWrite">read</span>(s(:cl),<span class="fortranOperator">*</span>,<span class="fortranIO">iostat</span><span class="fortranOperator">=</span>ios) nCols
+    <span class="Conditional">if</span>( ios <span class="fortranOperator">/=</span> <span class="Number">0</span> )<span class="Conditional">then</span>
+      nCols <span class="fortranOperator">=</span> <span class="Number">0</span>
+      stat <span class="fortranOperator">=</span> <span class="Number">1</span>
+    <span class="Conditional">endif</span>
+  <span class="Conditional">else</span>
+    nCols <span class="fortranOperator">=</span> <span class="Number">0</span>
+    stat <span class="fortranOperator">=</span> <span class="Number">1</span>
+  <span class="Conditional">endif</span>
+
+  <span class="fortranCall">deallocate</span>(s)
+  <span class="fortranCall">deallocate</span>(cl)
+  <span class="fortranCall">deallocate</span>(cstat)
+  <span class="Comment">!-------------------------------------------------------------</span>
+<span class="fortranUnitHeader">end subroutine</span> get_terminal_nCols
+</code></pre>
+  <span class='word'>C</span>とのコンパイルリンクにおける作法については<a class='colored' href="compilelink.html">こちら</a>にも書かれているとおり,
+    ・<span class='word'>Fortran</span>側で<span class='word'>C</span>の関数を呼び出す際，<span class='word'>C</span>側では関数名の末尾にアンダーバーを付け，<span class='word'>Fortran</span>側では関数名の末尾のアンダーバーを消す
+    ・引数はポインターで渡す
+という点に留意する．
+
+  また文字列 (文字変数の配列) の扱い方が<span class='word'>C</span>と<span class='word'>Fortran</span>とで異なるので, それも気を付ける.
+  <span class='word'>C</span>の文字変数の配列は末尾に<span class='word'>NULL</span>終端文字が付いており, これをそのまま<span class='word'>Fortran</span>側で数値に変換しようとするとエラーとなる.
+  つまり上のコードで
+<pre><code class="language-fortran">  <span class="fortranCall">call</span> c_system_tput_cols(s, cl, cstat)
+
+  <span class="fortranReadWrite">read</span>(s,<span class="fortranOperator">*</span>) nCols
+</code></pre>などとするとエラーになるということ.
+  これを回避するため, 予め<span class='word'>C</span>の側で文字変数の配列の大きさ<span class='var'>cl</span>を取得しておき, そこまでの部分だけを数値に変換する.
+<pre><code class="language-fortran">  <span class="fortranCall">call</span> c_system_tpuc_cols(s, cl, cstat)
+
+  <span class="fortranReadWrite">read</span>(s(:cl),<span class="fortranOperator">*</span>) nCols
+</code></pre>
+  これをベースとして, <span class='word'>C</span>の関数が上手く実行できたかどうかを示す<span class='var'>cstat</span>の値に応じて場合分けすればよい.
+
+呼び出し例:
+<pre><code class="language-fortran"><span class="fortranUnitHeader">program</span> main
+  <span class="fortranType">implicit</span> <span class="fortranType">none</span>
+  <span class="fortranType">integer</span> :: nCols
+  <span class="fortranType">integer</span> :: stat
+
+  <span class="fortranCall">call</span> get_terminal_nCols(nCols, stat)
+
+  <span class="Conditional">if</span>( stat <span class="fortranOperator">==</span> <span class="Number">0</span> )<span class="Conditional">then</span>
+    <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, <span class="String">'Column width: '</span>, nCols
+  <span class="Conditional">else</span>
+    <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, <span class="String">'Failed to get column width'</span>
+  <span class="Conditional">endif</span>
+<span class="fortranUnitHeader">end program</span> main
+</code></pre>
+実行結果:
+<pre><code class="language-plaintext">$ ./main
+ Column width:         99
+</code></pre>
+</div>
+</ul>
+
+<!-- References -->
+<ul class='contentBox'>
+<div class='index'>References</div>
+<div class='ref'>
+popen / programming memo
+  + <a href="https://www.aihara.co.jp/~junt/program/popen.html">https://www.aihara.co.jp/~junt/program/popen.html</a>
+
+コンピューター：C言語講座：fork,exec,pipeについて
+  + <a href="http://www.ncad.co.jp/~komata/c-kouza3.htm">http://www.ncad.co.jp/~komata/c-kouza3.htm</a>
+
+popen関数の挙動まとめ - ペンギンは空を飛ぶ
+  + <a href="https://peng225.hatenablog.com/entry/2021/05/10/183314">https://peng225.hatenablog.com/entry/2021/05/10/183314</a>
+</div>
+</ul>
+</body>
+</html>
+

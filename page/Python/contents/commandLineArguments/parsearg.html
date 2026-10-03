@@ -7,8 +7,11 @@
   <meta http-equiv="Content-Style-Sheet" content="text/css">
   <link rel="icon" href="https://akiratakeshima.github.io/img/icon/favicon_03-5.ico" />
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/common.css" media="all">
-  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/hi/styles/vim-papercolor-like.css" media="all">
-  <script type="text/javascript" src="https://akiratakeshima.github.io/js/highlight.min.js"></script>
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/fortran.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/python.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/c.css" media="all">
+  <script type="text/javascript" src="{const.url}/js/highlight.min.js"></script>
   <script>hljs.highlightAll();</script>
   <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
 </head>
@@ -38,23 +41,23 @@
 
 </div>
 <div class='contents'>
-<pre><code class="language-python">import argparse
+<pre><code class="language-python"><span class="pythonInclude">import</span> argparse
 
-parser = argparse.ArgumentParser(description='This message can be omitted.')
+parser = argparse.ArgumentParser(description=<span class="pythonString">'</span><span class="pythonString">This message can be omitted.</span><span class="pythonString">'</span>)
 
-parser.add_argument('positional1', type=str, help='help')
-parser.add_argument('--optional1')
-parser.add_argument('-o2', '--optional2', type=int, choices=(0,1,2))
-parser.add_argument('-o3', '--optional3', type=float, required=True)
-parser.add_argument('--flag', action='store_true')
+parser.add_argument(<span class="pythonString">'</span><span class="pythonString">positional1</span><span class="pythonString">'</span>, <span class="pythonBuiltin">type</span>=<span class="pythonBuiltin">str</span>, <span class="pythonBuiltin">help</span>=<span class="pythonString">'</span><span class="pythonString">help</span><span class="pythonString">'</span>)
+parser.add_argument(<span class="pythonString">'</span><span class="pythonString">--optional1</span><span class="pythonString">'</span>)
+parser.add_argument(<span class="pythonString">'</span><span class="pythonString">-o2</span><span class="pythonString">'</span>, <span class="pythonString">'</span><span class="pythonString">--optional2</span><span class="pythonString">'</span>, <span class="pythonBuiltin">type</span>=<span class="pythonBuiltin">int</span>, choices=(<span class="pythonNumber">0</span>,<span class="pythonNumber">1</span>,<span class="pythonNumber">2</span>))
+parser.add_argument(<span class="pythonString">'</span><span class="pythonString">-o3</span><span class="pythonString">'</span>, <span class="pythonString">'</span><span class="pythonString">--optional3</span><span class="pythonString">'</span>, <span class="pythonBuiltin">type</span>=<span class="pythonBuiltin">float</span>, required=<span class="pythonBuiltin">True</span>)
+parser.add_argument(<span class="pythonString">'</span><span class="pythonString">--flag</span><span class="pythonString">'</span>, action=<span class="pythonString">'</span><span class="pythonString">store_true</span><span class="pythonString">'</span>)
 
 args = parser.parse_args()
 
-print('positional1='+args.positional1)
-print('optional1='+args.optional1)
-print('optional2='+args.optional2)
-print('optional3='+args.optional3)
-print('flag='+args.flag)
+<span class="pythonBuiltin">print</span>(<span class="pythonString">'</span><span class="pythonString">positional1=</span><span class="pythonString">'</span>+args.positional1)
+<span class="pythonBuiltin">print</span>(<span class="pythonString">'</span><span class="pythonString">optional1=</span><span class="pythonString">'</span>+args.optional1)
+<span class="pythonBuiltin">print</span>(<span class="pythonString">'</span><span class="pythonString">optional2=</span><span class="pythonString">'</span>+args.optional2)
+<span class="pythonBuiltin">print</span>(<span class="pythonString">'</span><span class="pythonString">optional3=</span><span class="pythonString">'</span>+args.optional3)
+<span class="pythonBuiltin">print</span>(<span class="pythonString">'</span><span class="pythonString">flag=</span><span class="pythonString">'</span>+args.flag)
 </code></pre>
 </div>
 </ul>

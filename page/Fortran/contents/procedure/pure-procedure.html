@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>純粋手続き</title>
+  <meta name="viewport" content="width=device-width">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Sheet" content="text/css">
+  <link rel="icon" href="https://akiratakeshima.github.io/img/icon/favicon_03-5.ico" />
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/fortran.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/c.css" media="all">
+  <script type="text/javascript" src="{const.url}/js/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+  <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+
+<body>
+
+  <!-- Title -->
+  <ul class='indexBox'>
+    <div class='title'>
+      純粋手続き
+    </div>
+  </ul>
+
+  <!-- Route -->
+  <ul class='indexBox'>
+    <div class='route'>
+      <u><a href="https://akiratakeshima.github.io/index.html">Top</a></u>
+      &gt; <u><a href="https://akiratakeshima.github.io/page/Fortran/index.html">Fortran</a></u>
+ &gt; 手続き
+    </div>
+  </ul>
+
+<!-- Contents -->
+<ul class='contentBox'>
+<div class='index'>
+純粋手続き (純粋関数、純粋サブルーチン)
+</div>
+<div class='contents'>
+　次のような手続きを純粋手続きという．
+　　・標準入出力やファイルの入出力を行わない
+　　・関数の場合は引数と返値，サブルーチンの場合は引数にのみ作用し，他の変数 (モジュール変数など) に影響を与えない
+
+　純粋手続き内で呼び出す手続きは純粋手続きでなければならない．
+　また純粋手続きは純粋手続きであることが明示的に示されていなければならない．
+
+　純粋手続きは pure というキーワードで定義する．
+
+　例:
+<pre><code class="language-fortran"><span class="fortranUnitHeader">program</span> main
+  <span class="fortranType">implicit</span> <span class="fortranType">none</span>
+  <span class="fortranType">integer</span> :: a, b
+
+  a <span class="fortranOperator">=</span> <span class="Number">2</span>
+  b <span class="fortranOperator">=</span> <span class="Number">6</span>
+
+  <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, purefunc1(a, b)
+
+<span class="fortranUnitHeader">contains</span>
+<span class="Comment">!===============================================================</span>
+<span class="Comment">!</span>
+<span class="Comment">!===============================================================</span>
+<span class="fortranType">integer</span> <span class="fortranUnitHeader">pure</span> <span class="fortranUnitHeader">function</span> purefunc1(a, b) <span class="fortranUnitHeader">result</span>(c)
+  <span class="fortranType">implicit</span> <span class="fortranType">none</span>
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">in</span>) :: a, b
+
+  c <span class="fortranOperator">=</span> a <span class="fortranOperator">*</span> b
+
+  c <span class="fortranOperator">=</span> purefunc2(c)
+
+  <span class="fortranCall">call</span> puresub1(a, b, c)
+<span class="fortranUnitHeader">end function</span> purefunc1
+<span class="Comment">!===============================================================</span>
+<span class="Comment">!</span>
+<span class="Comment">!===============================================================</span>
+<span class="fortranType">integer</span> <span class="fortranUnitHeader">pure</span> <span class="fortranUnitHeader">function</span> purefunc2(c) <span class="fortranUnitHeader">result</span>(x)
+  <span class="fortranType">implicit</span> <span class="fortranType">none</span>
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">in</span>) :: c
+
+  x <span class="fortranOperator">=</span> c <span class="fortranOperator">+</span> <span class="Number">1</span>
+<span class="fortranUnitHeader">end function</span> purefunc2
+<span class="Comment">!===============================================================</span>
+<span class="Comment">!</span>
+<span class="Comment">!===============================================================</span>
+<span class="fortranUnitHeader">pure</span> <span class="fortranUnitHeader">subroutine</span> puresub1(a, b, c)
+  <span class="fortranType">implicit</span> <span class="fortranType">none</span>
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">in</span>) :: a, b
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">inout</span>) :: c
+
+  <span class="Conditional">if</span>( a <span class="fortranOperator">&lt;</span> <span class="Number">0</span> <span class="fortranOperator">.or.</span> b <span class="fortranOperator">&lt;</span> <span class="Number">0</span> ) c <span class="fortranOperator">=</span> <span class="Number">0</span>
+<span class="fortranUnitHeader">end subroutine</span> puresub1
+<span class="Comment">!===============================================================</span>
+<span class="Comment">!</span>
+<span class="Comment">!===============================================================</span>
+<span class="fortranUnitHeader">end program</span> main
+</code></pre>
+</div>
+</ul>
+
+<!-- References -->
+<ul class='contentBox'>
+<div class='index'>References</div>
+<div class='ref'>
+</div>
+</ul>
+</body>
+</html>
+

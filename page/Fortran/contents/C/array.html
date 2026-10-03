@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>配列の受け渡し</title>
+  <meta name="viewport" content="width=device-width">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Sheet" content="text/css">
+  <link rel="icon" href="https://akiratakeshima.github.io/img/icon/favicon_03-5.ico" />
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/fortran.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/c.css" media="all">
+  <script type="text/javascript" src="{const.url}/js/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+  <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+
+<body>
+
+  <!-- Title -->
+  <ul class='indexBox'>
+    <div class='title'>
+      配列の受け渡し
+    </div>
+  </ul>
+
+  <!-- Route -->
+  <ul class='indexBox'>
+    <div class='route'>
+      <u><a href="https://akiratakeshima.github.io/index.html">Top</a></u>
+      &gt; <u><a href="https://akiratakeshima.github.io/page/Fortran/index.html">Fortran</a></u>
+ &gt; C
+    </div>
+  </ul>
+
+<!-- Contents -->
+<ul class='contentBox'>
+<div class='index'>
+FortranからCの手続きを呼び出して配列を受け渡す
+</div>
+<div class='contents'>
+　メインプログラムが<span class='word'>Fortran (main.f90)</span>, 関数が<span class='word'>C (func.c)</span>で書かれており, 関数は配列を引数に取る.
+
+<span class='index1'><span class='word'>C</span>の関数</span>
+  ・引数はポインターで与えられる
+  ・配列のインデックスは<span class='word'>0</span>から (配列の大きさ)-1 まで
+
+C func.c
+<pre><code class="language-c"><span class="Include">#include </span><span class="String">&lt;stdio.h&gt;</span>
+
+<span class="cType">void</span> put_data_( <span class="cType">int</span> *ijmax, <span class="cType">int</span> *array ){
+  <span class="cType">int</span> ij;
+  <span class="cRepeat">for</span>( ij = <span class="cNumber">0</span>; ij &lt; *ijmax; ij++ ){
+    printf( <span class="String">&quot;ij = </span><span class="cFormat">%d</span><span class="cSpecial">\n</span><span class="String">&quot;</span>, ij );
+    array[ij] = ij;
+  }
+}
+</code></pre>
+<span class='index1'><span class='word'>Fortran</span>のプログラム</span>
+  ・<span class='word'>C</span>の関数名の最後のアンダーバーは書かない
+  ・配列はポインター
+  ・<span class='word'>Fortran</span>における配列のインデックスの範囲は<span class='word'>C</span>には反映されないので, インデックスの最小・最大値ではなく大きさのみ与える.
+
+Fortran main.f90
+<pre><code class="language-fortran"><span class="fortranUnitHeader">program</span> main
+  <span class="fortranType">implicit</span> <span class="fortranType">none</span>
+
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">parameter</span> :: imin <span class="fortranOperator">=</span> <span class="Number">11</span>
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">parameter</span> :: imax <span class="fortranOperator">=</span> <span class="Number">20</span>
+  <span class="fortranType">integer</span> :: i
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">pointer</span> :: array(:)
+
+  <span class="fortranCall">allocate</span>(array(imin:imax))
+  array(:) <span class="fortranOperator">=</span> <span class="Number">0</span>
+
+  <span class="fortranCall">call</span> put_data(imax<span class="fortranOperator">-</span>imin<span class="fortranOperator">+</span><span class="Number">1</span>, array)
+  <span class="Repeat">do</span> i <span class="fortranOperator">=</span> imin, imax
+    <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, <span class="String">'i:'</span>,i,<span class="String">', array(i):'</span>,array(i)
+  <span class="Repeat">enddo</span>
+<span class="fortranUnitHeader">end program</span> main
+</code></pre>
+<span class='index1'>コンパイル・実行</span>
+<pre><code class="language-plaintext">$ icc -c func.c
+$ ifort -c main.f90
+$ ifort -o main main.o func.o
+$ ./main
+ij = 0
+ij = 1
+ij = 2
+ij = 3
+ij = 4
+ij = 5
+ij = 6
+ij = 7
+ij = 8
+ij = 9
+ i:          11 , array(i):           0
+ i:          12 , array(i):           1
+ i:          13 , array(i):           2
+ i:          14 , array(i):           3
+ i:          15 , array(i):           4
+ i:          16 , array(i):           5
+ i:          17 , array(i):           6
+ i:          18 , array(i):           7
+ i:          19 , array(i):           8
+ i:          20 , array(i):           9
+</code></pre>
+</div>
+<div class='index'>
+<span class='word'>C</span>から<span class='word'>Fortran</span>の手続きを呼び出して配列を受け渡す
+</div>
+<div class='contents'><span class='index1'><span class='word'>Fortran</span>の関数</span>
+<pre><code class="language-fortran"><span class="fortranUnitHeader">subroutine</span> add_array(array,imax)
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">in</span>)    :: imax
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">inout</span>) :: array(imax)
+  <span class="fortranType">integer</span> :: i
+
+  <span class="Repeat">do</span> i <span class="fortranOperator">=</span> <span class="Number">1</span>, imax
+    array(i) <span class="fortranOperator">=</span> array(i) <span class="fortranOperator">+</span> <span class="Number">10</span>
+  <span class="Repeat">enddo</span>
+<span class="fortranUnitHeader">end subroutine</span> add_array
+</code></pre>
+<span class='index1'><span class='word'>C</span>のプログラム</span>
+<pre><code class="language-c"><span class="Include">#include </span><span class="String">&lt;stdio.h&gt;</span>
+
+<span class="cStorageClass">extern</span> <span class="cType">void</span> add_array_(<span class="cType">int</span>[], <span class="cType">int</span> *);
+
+<span class="cType">int</span> main(){
+  <span class="cType">int</span> i;
+
+  <span class="cType">int</span> length = <span class="cNumber">10</span>;
+  <span class="cType">int</span> array[length];
+
+  <span class="cRepeat">for</span>( i = <span class="cNumber">0</span>; i &lt; length; i++ ){
+    array[i] = i + <span class="cNumber">1</span>;
+  }
+
+  printf( <span class="String">&quot;Before: </span><span class="cSpecial">\n</span><span class="String">&quot;</span> );
+  <span class="cRepeat">for</span>( i = <span class="cNumber">0</span>; i &lt; length; i++ ){
+    printf( <span class="String">&quot;</span><span class="cFormat">%d</span><span class="String"> &quot;</span>, array[i] );
+  }
+  printf( <span class="String">&quot;</span><span class="cSpecial">\n</span><span class="String">&quot;</span> );
+
+  add_array_( array, &amp;length );
+
+  printf( <span class="String">&quot;After : </span><span class="cSpecial">\n</span><span class="String">&quot;</span> );
+  <span class="cRepeat">for</span>( i = <span class="cNumber">0</span>; i &lt; length; i++ ){
+    printf( <span class="String">&quot;</span><span class="cFormat">%d</span><span class="String"> &quot;</span>, array[i] );
+  }
+  printf( <span class="String">&quot;</span><span class="cSpecial">\n</span><span class="String">&quot;</span> );
+
+  <span class="Statement">return</span> <span class="cNumber">0</span>;
+}
+</code></pre>
+<span class='index1'>コンパイル・実行</span>
+<pre><code class="language-plaintext">$ ifort -c func.f90
+$ icc -c main.c
+$ icc -o main main.o func.o
+$ ./main
+Before:
+1 2 3 4 5 6 7 8 9 10
+After :
+11 12 13 14 15 16 17 18 19 20
+</code></pre>
+</div>
+</ul>
+
+<!-- References -->
+<ul class='contentBox'>
+<div class='index'>References</div>
+<div class='ref'>
+関数に配列を渡す | C言語入門～bituse～
+  + <a href="https://bituse.info/c/30">https://bituse.info/c/30</a>
+
+C から Fortran を呼び出してみる - 雑食性雑感雑記
+  + <a href="http://kazuki-nagasawa.hatenablog.com/entry/memo_20140715_c_fortran">http://kazuki-nagasawa.hatenablog.com/entry/memo_20140715_c_fortran</a>
+</div>
+</ul>
+</body>
+</html>
+
