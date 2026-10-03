@@ -1,6 +1,6 @@
 {
-  "dir_out": "/home/akira/website/AkiraTAKESHIMA.github.io",
+  "platform": "github",
   "url": "https://akiratakeshima.github.io",
-  "style_css": "obsidian"
+  "style_css": "vim-papercolor-like"
 }
 
