@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>演算子のオーバーロード</title>
+  <meta name="viewport" content="width=device-width">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Sheet" content="text/css">
+  <link rel="icon" href="https://akiratakeshima.github.io/img/icon/favicon_03-5.ico" />
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/fortran.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/python.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/c.css" media="all">
+  <script type="text/javascript" src="{const.url}/js/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+  <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+
+<body>
+
+  <!-- Title -->
+  <ul class='indexBox'>
+    <div class='title'>
+      演算子のオーバーロード
+    </div>
+  </ul>
+
+  <!-- Route -->
+  <ul class='indexBox'>
+    <div class='route'>
+      <u><a href="https://akiratakeshima.github.io/index.html">Top</a></u>
+      &gt; <u><a href="https://akiratakeshima.github.io/page/Fortran/index.html">Fortran</a></u>
+ &gt; 手続き
+    </div>
+  </ul>
+
+<!-- Contents -->
+<ul class='contentBox'>
+<div class='index'>
+概要
+</div>
+<div class='contents'>
+　演算子を任意のデータ型に対して定義することができる．
+
+　例えば
+　・構造体同士の足し算
+　・配列の転地
+など．
+
+　<span class='var'>=</span>, <span class='var'>+</span>, <span class='var'>.gt.</span> といった組み込み演算子について処理内容を定義することも，<span class='var'>.next.</span>のように新たな演算子とその処理内容を定義することも可能．
+　モジュールで定義し，必要に応じてロードするのが良い．その際は演算子以外は<span class='src'>private</span>で外部から参照できなくしてしまうのが安全．
+
+<span class='index1'>assignment</span>
+　代入は<span class='src'>subroutine</span>で定義する．
+　引数<span class='word'>1</span>が代入先，引数<span class='word'>2</span>が代入元．
+　したがって授受特性<span class='src'>(intent)</span>は引数<span class='word'>1</span>を<span class='src'>out</span>，引数<span class='word'>2</span>を<span class='src'>in</span>とする．
+
+<pre><code class="language-fortran"><span class="fortranUnitHeader">module</span> a
+  <span class="fortranVariableAttribute">private</span>
+  <span class="fortranVariableAttribute">public</span> :: <span class="fortranUnitHeader">assignment</span>(<span class="fortranOperator">=</span>)
+
+  <span class="fortranType">interface</span> <span class="fortranUnitHeader">assignment</span>(<span class="fortranOperator">+</span>)
+    <span class="fortranType">module</span> <span class="fortranType">procedure</span> procedure_assign
+  <span class="fortranType">end interface</span>
+
+<span class="fortranUnitHeader">contains</span>
+
+<span class="fortranComment">!</span>
+<span class="fortranComment">! define procedures</span>
+<span class="fortranComment">!</span>
+
+<span class="fortranUnitHeader">end module</span> a
+</code></pre>
+
+<span class='index1'>operator</span>
+　演算子は<span class='src'>function</span>で定義する．
+　単項演算子は引数をちょうど<span class='word'>1</span>つ，二項演算子は引数をちょうど<span class='word'>2</span>つ与える．
+
+　<span class='index2'>組み込み演算子</span>
+　組み込み演算子は，定義されていない入力の組に対して，その処理を新たに定義できる．例えば，<span class='var'>+</span>は<span class='src'>integer(4)</span>と<span class='src'>real(8)</span>を入力とする演算が元々定義されているので，そのような関数を新たにこの演算子で定義することはできない．一方，<span class='src'>character</span>と<span class='src'>integer(4)</span>を入力とする演算は定義されていないので，そのような関数は定義することができる．<span class='var'>.gt.</span>や<span class='var'>.eqv.</span>などのピリオドで囲まれた演算子も同様．
+
+　<span class='index2'>ユーザー定義の演算子</span>
+　組み込み演算子として定義されていないものは，名前とその処理を自由に定義できる．ただし名前は<span class='var'>.gt.</span>のようにピリオドで囲む形式．
+
+<pre><code class="language-fortran"><span class="fortranUnitHeader">module</span> a
+  <span class="fortranType">implicit</span> <span class="fortranType">none</span>
+  <span class="fortranVariableAttribute">private</span>
+  <span class="fortranVariableAttribute">public</span> :: <span class="fortranUnitHeader">operator</span>(<span class="fortranOperator">+</span>)
+  <span class="fortranVariableAttribute">public</span> :: <span class="fortranUnitHeader">operator</span>(<span class="fortranOperator">.op.</span>)
+
+  <span class="fortranType">interface</span> <span class="fortranUnitHeader">operator</span>(<span class="fortranOperator">+</span>)
+    <span class="fortranType">module</span> <span class="fortranType">procedure</span> procedure_plus
+  <span class="fortranType">end interface</span>
+
+  <span class="fortranType">interface</span> <span class="fortranUnitHeader">operator</span>(<span class="fortranOperator">.op.</span>)
+    <span class="fortranType">module</span> <span class="fortranType">procedure</span> procedure_op_1
+    <span class="fortranType">module</span> <span class="fortranType">procedure</span> procedure_op_2
+  <span class="fortranType">end interface</span>
+
+<span class="fortranUnitHeader">contains</span>
+
+<span class="fortranComment">!</span>
+<span class="fortranComment">! define procedures</span>
+<span class="fortranComment">!</span>
+
+<span class="fortranUnitHeader">end module</span> a
+</code></pre>
+</div>
+<div class='index'>
+サンプル
+</div>
+<div class='contents'>
+　<span class='src'>=</span>
+　　代入演算子．
+　　引数 <span class='src'>i</span>: <span class='src'>integer(4)</span>
+　　返値 <span class='src'>l</span>: <span class='src'>logical(4)</span>
+　　処理内容: <span class='src'>i</span> が<span class='src'>0</span>のとき<span class='src'>l</span>は<span class='src'>true</span>, そうでないとき<span class='src'>l</span>は<span class='src'>false</span>.
+
+　<span class='src'>-</span>
+　　二項演算子．
+　　引数 <span class='src'>a</span>: <span class='src'>type(ds_)</span>, <span class='src'>b</span>: <span class='src'>type(ds_)</span>
+　　返値 <span class='src'>c</span>: <span class='src'>type(ds_)</span>
+　　処理内容: <span class='src'>a</span>と<span class='src'>b</span>の対応する要素の和を計算し<span class='src'>c</span>の各要素に代入したものを返す．
+　　※モジュールで構造型<span class='src'>ds_</span>を定義し<span class='src'>public</span>にしているので注意．個人的には構造型定義用のモジュールを別に用意するのが良いと思うが，ここではまとめている．
+
+　<span class='src'>.t.</span>
+　　単項演算子．
+　　引数 <span class='src'>A</span>: <span class='word'>2</span>次元配列 (<span class='src-n'>real(8)</span>)．形状<span class='src'>(N,M)</span>
+　　返値 <span class='src'>B</span>: <span class='word'>2</span>次元配列 (<span class='src-n'>real(8)</span>)．形状<span class='src'>(M,N)</span>
+　　処理内容: <span class='src'>A</span>の転置行列を返す．
+
+　<span class='src'>.next.</span>
+　　二項演算子．
+　　－<span class='src'>integer(4)</span>用手続き:
+　　　引数 <span class='src'>i</span>: <span class='src'>integer(4)</span>, imax: <span class='src'>integer(4)</span>
+　　　返値 <span class='src'>ii</span>: <span class='src'>integer(4)</span>
+　　　処理内容: <span class='src'>i</span>に<span class='src'>1</span>を足したものを返す．それが<span class='src'>imax</span>を超えるときは<span class='src'>1</span>を返す．ただし<span class='src'>i</span>が<span class='src'>1 <= i <= imax</span>でないときは<span class='src'>-1</span>を返す．
+　　－<span class='src'>integer(8)</span>用手続き
+　　　引数 <span class='src'>i</span>: <span class='src'>integer(8)</span>, <span class='src'>imax</span>: <span class='src'>integer(8)</span>
+　　　返値 <span class='src'>ii</span>: <span class='src'>integer(8)</span>
+　　　処理内容: 同上
+　　※<span class='src'>imax</span>が<span class='src'>1</span>以上であることを前提としている．本当はもう少し処理をきちんと書くべきだが，ここでは色々省略している．
+
+<pre><code class="language-fortran"><span class="fortranUnitHeader">module</span> operators
+  <span class="fortranType">implicit</span> <span class="fortranType">none</span>
+  <span class="fortranVariableAttribute">private</span>
+  <span class="fortranComment">!-------------------------------------------------------------</span>
+  <span class="fortranComment">! Public procedures</span>
+  <span class="fortranComment">!-------------------------------------------------------------</span>
+  <span class="fortranVariableAttribute">public</span> :: <span class="fortranUnitHeader">assignment</span>(<span class="fortranOperator">=</span>)
+  <span class="fortranVariableAttribute">public</span> :: <span class="fortranUnitHeader">operator</span>(<span class="fortranOperator">-</span>)
+  <span class="fortranVariableAttribute">public</span> :: <span class="fortranUnitHeader">operator</span>(<span class="fortranOperator">.t.</span>)
+  <span class="fortranVariableAttribute">public</span> :: <span class="fortranUnitHeader">operator</span>(<span class="fortranOperator">.next.</span>)
+  <span class="fortranComment">!-------------------------------------------------------------</span>
+  <span class="fortranComment">! Interfaces</span>
+  <span class="fortranComment">!-------------------------------------------------------------</span>
+  <span class="fortranType">interface</span> <span class="fortranUnitHeader">assignment</span>(<span class="fortranOperator">=</span>)
+    <span class="fortranType">module</span> <span class="fortranType">procedure</span> assign__int4_log4
+  <span class="fortranType">end interface</span>
+
+  <span class="fortranType">interface</span> <span class="fortranUnitHeader">operator</span>(<span class="fortranOperator">-</span>)
+    <span class="fortranType">module</span> <span class="fortranType">procedure</span> minus__ds
+  <span class="fortranType">end interface</span>
+
+  <span class="fortranType">interface</span> <span class="fortranUnitHeader">operator</span>(<span class="fortranOperator">.t.</span>)
+    <span class="fortranType">module</span> <span class="fortranType">procedure</span> transpose__dble
+  <span class="fortranType">end interface</span>
+
+  <span class="fortranType">interface</span> <span class="fortranUnitHeader">operator</span>(<span class="fortranOperator">.next.</span>)
+    <span class="fortranType">module</span> <span class="fortranType">procedure</span> next__int4
+    <span class="fortranType">module</span> <span class="fortranType">procedure</span> next__int8
+  <span class="fortranType">end interface</span>
+  <span class="fortranComment">!-------------------------------------------------------------</span>
+  <span class="fortranComment">! Public module variables (type)</span>
+  <span class="fortranComment">!-------------------------------------------------------------</span>
+  <span class="fortranVariableAttribute">public</span> :: ds_
+
+  <span class="fortranType">type</span> ds_
+    <span class="fortranType">integer</span> :: i
+<span class="fortranType">    real</span>(<span class="fortranNumber">8</span>) :: x
+  <span class="fortranType">end type</span>
+  <span class="fortranComment">!-------------------------------------------------------------</span>
+<span class="fortranUnitHeader">contains</span>
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranComment">!</span>
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranUnitHeader">subroutine</span> assign__int4_log4(b, a)
+  <span class="fortranType">implicit</span> <span class="fortranType">none</span>
+  <span class="fortranType">integer</span>(<span class="fortranNumber">4</span>), <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">in</span>) :: a
+<span class="fortranType">  logical</span>(<span class="fortranNumber">4</span>), <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">out</span>) :: b
+
+  b <span class="fortranOperator">=</span> a <span class="fortranOperator">==</span> <span class="fortranNumber">0</span>
+<span class="fortranUnitHeader">end subroutine</span> assign__int4_log4
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranComment">!</span>
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranType">type</span>(ds_) <span class="fortranUnitHeader">function</span> minus__ds(a, b) <span class="fortranUnitHeader">result</span>(c)
+  <span class="fortranType">implicit</span> <span class="fortranType">none</span>
+  <span class="fortranType">type</span>(ds_), <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">in</span>) :: a, b
+
+  c%i <span class="fortranOperator">=</span> a%i <span class="fortranOperator">-</span> b%i
+  c%x <span class="fortranOperator">=</span> a%x <span class="fortranOperator">-</span> b%x
+<span class="fortranUnitHeader">end function</span> minus__ds
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranComment">!</span>
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranUnitHeader">function</span> transpose__dble(a) <span class="fortranUnitHeader">result</span>(b)
+  <span class="fortranType">implicit</span> <span class="fortranType">none</span>
+<span class="fortranType">  real</span>(<span class="fortranNumber">8</span>), <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">in</span>) :: a(:,:)
+<span class="fortranType">  real</span>(<span class="fortranNumber">8</span>) :: b(<span class="fortranIntrinsic">size</span>(a,<span class="fortranNumber">2</span>),<span class="fortranIntrinsic">size</span>(a,<span class="fortranNumber">1</span>))
+
+  b <span class="fortranOperator">=</span> <span class="fortranIntrinsic">transpose</span>(a)
+<span class="fortranUnitHeader">end function</span> transpose__dble
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranComment">!</span>
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranType">integer</span>(<span class="fortranNumber">4</span>) <span class="fortranUnitHeader">function</span> next__int4(i, imax) <span class="fortranUnitHeader">result</span>(ii)
+  <span class="fortranType">implicit</span> <span class="fortranType">none</span>
+  <span class="fortranType">integer</span>(<span class="fortranNumber">4</span>), <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">in</span>) :: i, imax
+
+  <span class="fortranConditional">if</span>( i <span class="fortranOperator">&gt;</span> <span class="fortranNumber">0</span> <span class="fortranOperator">.and.</span> i <span class="fortranOperator">&lt;</span> imax )<span class="fortranConditional">then</span>
+    ii <span class="fortranOperator">=</span> i <span class="fortranOperator">+</span> <span class="fortranNumber">1</span>
+  <span class="fortranConditional">elseif</span>( i <span class="fortranOperator">==</span> imax )<span class="fortranConditional">then</span>
+    ii <span class="fortranOperator">=</span> <span class="fortranNumber">1</span>
+  <span class="fortranConditional">else</span>
+    ii <span class="fortranOperator">=</span> <span class="fortranOperator">-</span><span class="fortranNumber">1</span>
+  <span class="fortranConditional">endif</span>
+<span class="fortranUnitHeader">end function</span> next__int4
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranComment">!</span>
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranType">integer</span>(<span class="fortranNumber">8</span>) <span class="fortranUnitHeader">function</span> next__int8(i, imax) <span class="fortranUnitHeader">result</span>(ii)
+  <span class="fortranType">implicit</span> <span class="fortranType">none</span>
+  <span class="fortranType">integer</span>(<span class="fortranNumber">8</span>), <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">in</span>) :: i, imax
+
+  <span class="fortranConditional">if</span>( i <span class="fortranOperator">&gt;</span> <span class="fortranConstant">0_8</span> <span class="fortranOperator">.and.</span> i <span class="fortranOperator">&lt;</span> imax )<span class="fortranConditional">then</span>
+    ii <span class="fortranOperator">=</span> i <span class="fortranOperator">+</span> <span class="fortranConstant">1_8</span>
+  <span class="fortranConditional">elseif</span>( i <span class="fortranOperator">==</span> imax )<span class="fortranConditional">then</span>
+    ii <span class="fortranOperator">=</span> <span class="fortranConstant">1_8</span>
+  <span class="fortranConditional">else</span>
+    ii <span class="fortranOperator">=</span> <span class="fortranOperator">-</span><span class="fortranConstant">1_8</span>
+  <span class="fortranConditional">endif</span>
+<span class="fortranUnitHeader">end function</span> next__int8
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranComment">!</span>
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranType">logical</span> <span class="fortranUnitHeader">function</span> abs_gt(a, s) <span class="fortranUnitHeader">result</span>(res)
+  <span class="fortranType">implicit</span> <span class="fortranType">none</span>
+  <span class="fortranType">character</span>(<span class="fortranOperator">*</span>), <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">in</span>) :: s
+<span class="fortranType">  real</span>(<span class="fortranNumber">8</span>), <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">in</span>) :: a
+
+  res <span class="fortranOperator">=</span> a <span class="fortranOperator">&gt;</span> <span class="fortranIntrinsic">len</span>(s)
+<span class="fortranUnitHeader">end function</span> abs_gt
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranComment">!</span>
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranUnitHeader">end module</span> operators
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranComment">!</span>
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranComment">!</span>
+<span class="fortranComment">!</span>
+<span class="fortranComment">!</span>
+<span class="fortranComment">!</span>
+<span class="fortranComment">!</span>
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranComment">!</span>
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranUnitHeader">program</span> main
+  <span class="fortranUnitHeader">use</span> operators
+  <span class="fortranType">implicit</span> <span class="fortranType">none</span>
+<span class="fortranType">  logical</span>(<span class="fortranNumber">4</span>) :: tf
+  <span class="fortranType">integer</span>(<span class="fortranNumber">4</span>) :: imax, i, ii
+  <span class="fortranType">integer</span>(<span class="fortranNumber">4</span>) :: jmax, j
+  <span class="fortranType">type</span>(ds_) :: a, b, c
+<span class="fortranType">  real</span>(<span class="fortranNumber">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: f(:,:), g(:,:)
+  <span class="fortranType">character</span>(<span class="fortranNumber">32</span>) :: wfmt
+  <span class="fortranComment">!-------------------------------------------------------------</span>
+  <span class="fortranComment">! test =</span>
+  <span class="fortranComment">!-------------------------------------------------------------</span>
+  <span class="fortranReadWrite">print</span><span class="fortranString">&quot;(1x,a)&quot;</span>, <span class="fortranString">'test : ='</span>
+
+  i <span class="fortranOperator">=</span> <span class="fortranNumber">0</span>
+  tf <span class="fortranOperator">=</span> i
+  <span class="fortranReadWrite">print</span><span class="fortranString">&quot;(3x,i0,a,l1)&quot;</span>, i, <span class="fortranString">' is '</span>, tf
+
+  i <span class="fortranOperator">=</span> <span class="fortranNumber">2</span>
+  tf <span class="fortranOperator">=</span> i
+  <span class="fortranReadWrite">print</span><span class="fortranString">&quot;(3x,i0,a,l1)&quot;</span>, i, <span class="fortranString">' is '</span>, tf
+  <span class="fortranComment">!-------------------------------------------------------------</span>
+  <span class="fortranComment">! test -</span>
+  <span class="fortranComment">!-------------------------------------------------------------</span>
+  <span class="fortranReadWrite">print</span><span class="fortranString">&quot;(1x,a)&quot;</span>, <span class="fortranString">'test : -'</span>
+
+  a%i <span class="fortranOperator">=</span> <span class="fortranNumber">12</span>
+  a%x <span class="fortranOperator">=</span> <span class="fortranFloat">3.1d0</span>
+  b%i <span class="fortranOperator">=</span> <span class="fortranNumber">90</span>
+  b%x <span class="fortranOperator">=</span> <span class="fortranFloat">11.4d0</span>
+  c <span class="fortranOperator">=</span> b <span class="fortranOperator">-</span> a
+  <span class="fortranReadWrite">print</span><span class="fortranString">&quot;(3x,'(',i0,',',es10.3,') - (',i0,',',es10.3,') = (',i0,',',es10.3,')')&quot;</span>, <span class="fortranContinueMark">&amp;</span>
+    b%i, b%x, a%i, a%x, c%i, c%x
+  <span class="fortranComment">!-------------------------------------------------------------</span>
+  <span class="fortranComment">! test .t.</span>
+  <span class="fortranComment">!-------------------------------------------------------------</span>
+  <span class="fortranReadWrite">print</span><span class="fortranString">&quot;(1x,a)&quot;</span>, <span class="fortranString">'test : .t.'</span>
+
+  imax <span class="fortranOperator">=</span> <span class="fortranNumber">3</span>
+  jmax <span class="fortranOperator">=</span> <span class="fortranNumber">2</span>
+
+  <span class="fortranCall">allocate</span>(f(imax,jmax), g(jmax,imax))
+
+  <span class="fortranRepeat">do</span> j <span class="fortranOperator">=</span> <span class="fortranNumber">1</span>, jmax
+  <span class="fortranRepeat">do</span> i <span class="fortranOperator">=</span> <span class="fortranNumber">1</span>, imax
+    f(i,j) <span class="fortranOperator">=</span> (j<span class="fortranOperator">-</span><span class="fortranNumber">1</span>)<span class="fortranOperator">*</span>imax <span class="fortranOperator">+</span> i
+  <span class="fortranRepeat">enddo</span>
+  <span class="fortranRepeat">enddo</span>
+
+  g <span class="fortranOperator">=</span> <span class="fortranOperator">.t.</span> f
+
+  <span class="fortranReadWrite">print</span><span class="fortranString">&quot;(3x,a)&quot;</span>, <span class="fortranString">'f = '</span>
+  <span class="fortranRepeat">do</span> j <span class="fortranOperator">=</span> <span class="fortranNumber">1</span>, jmax
+    <span class="fortranConditional">if</span>( j <span class="fortranOperator">==</span> <span class="fortranNumber">1</span> )<span class="fortranConditional">then</span>
+      <span class="fortranReadWrite">write</span>(wfmt,<span class="fortranString">&quot;(a,i0,a)&quot;</span>) <span class="fortranString">'(3x,&quot;(&quot;,f3.1,'</span>, imax<span class="fortranOperator">-</span><span class="fortranNumber">1</span>, <span class="fortranString">'(1x,f3.1))'</span>
+    <span class="fortranConditional">elseif</span>( j <span class="fortranOperator">==</span> jmax )<span class="fortranConditional">then</span>
+      <span class="fortranReadWrite">write</span>(wfmt,<span class="fortranString">&quot;(a,i0,a)&quot;</span>) <span class="fortranString">'(3x,1x,f3.1,'</span>, imax<span class="fortranOperator">-</span><span class="fortranNumber">1</span>, <span class="fortranString">'(1x,f3.1),&quot;)&quot;)'</span>
+    <span class="fortranConditional">else</span>
+      <span class="fortranReadWrite">write</span>(wfmt,<span class="fortranString">&quot;(a,i0,a)&quot;</span>) <span class="fortranString">'(3x,1x,f3.1,'</span>, imax<span class="fortranOperator">-</span><span class="fortranNumber">1</span>, <span class="fortranString">'(1x,f3.1))'</span>
+    <span class="fortranConditional">endif</span>
+    <span class="fortranReadWrite">print</span> wfmt, f(:,j)
+  <span class="fortranRepeat">enddo</span>
+
+  <span class="fortranReadWrite">print</span><span class="fortranString">&quot;(3x,a)&quot;</span>, <span class="fortranString">'.t. f = '</span>
+  <span class="fortranRepeat">do</span> i <span class="fortranOperator">=</span> <span class="fortranNumber">1</span>, imax
+    <span class="fortranConditional">if</span>( i <span class="fortranOperator">==</span> <span class="fortranNumber">1</span> )<span class="fortranConditional">then</span>
+      <span class="fortranReadWrite">write</span>(wfmt,<span class="fortranString">&quot;(a,i0,a)&quot;</span>) <span class="fortranString">'(3x,&quot;(&quot;,f3.1,'</span>, jmax<span class="fortranOperator">-</span><span class="fortranNumber">1</span>, <span class="fortranString">'(1x,f3.1))'</span>
+    <span class="fortranConditional">elseif</span>( i <span class="fortranOperator">==</span> imax )<span class="fortranConditional">then</span>
+      <span class="fortranReadWrite">write</span>(wfmt,<span class="fortranString">&quot;(a,i0,a)&quot;</span>) <span class="fortranString">'(3x,1x,f3.1,'</span>, jmax<span class="fortranOperator">-</span><span class="fortranNumber">1</span>, <span class="fortranString">'(1x,f3.1),&quot;)&quot;)'</span>
+    <span class="fortranConditional">else</span>
+      <span class="fortranReadWrite">write</span>(wfmt,<span class="fortranString">&quot;(a,i0,a)&quot;</span>) <span class="fortranString">'(3x,1x,f3.1,'</span>, jmax<span class="fortranOperator">-</span><span class="fortranNumber">1</span>, <span class="fortranString">'(1x,f3.1))'</span>
+    <span class="fortranConditional">endif</span>
+    <span class="fortranReadWrite">print</span> wfmt, g(:,i)
+  <span class="fortranRepeat">enddo</span>
+  <span class="fortranComment">!-------------------------------------------------------------</span>
+  <span class="fortranComment">! test .next.</span>
+  <span class="fortranComment">!-------------------------------------------------------------</span>
+  <span class="fortranReadWrite">print</span><span class="fortranString">&quot;(1x,a)&quot;</span>, <span class="fortranString">'test : .next.'</span>
+  imax <span class="fortranOperator">=</span> <span class="fortranNumber">3</span>
+
+  i <span class="fortranOperator">=</span> <span class="fortranNumber">1</span>
+  ii <span class="fortranOperator">=</span> i <span class="fortranOperator">.next.</span> imax
+  <span class="fortranReadWrite">print</span><span class="fortranString">&quot;(3x,2(i0,a),i0)&quot;</span>, i, <span class="fortranString">' .next. '</span>, imax, <span class="fortranString">' = '</span>, ii
+
+  i <span class="fortranOperator">=</span> <span class="fortranNumber">3</span>
+  ii <span class="fortranOperator">=</span> i <span class="fortranOperator">.next.</span> imax
+  <span class="fortranReadWrite">print</span><span class="fortranString">&quot;(3x,2(i0,a),i0)&quot;</span>, i, <span class="fortranString">' .next. '</span>, imax, <span class="fortranString">' = '</span>, ii
+
+  i <span class="fortranOperator">=</span> <span class="fortranNumber">99</span>
+  ii <span class="fortranOperator">=</span> i <span class="fortranOperator">.next.</span> imax
+  <span class="fortranReadWrite">print</span><span class="fortranString">&quot;(3x,2(i0,a),i0)&quot;</span>, i, <span class="fortranString">' .next. '</span>, imax, <span class="fortranString">' = '</span>, ii
+<span class="fortranUnitHeader">end program</span> main
+</code></pre>
+<pre><code class="language-plaintext">$ gfortrain -o main main.f90
+$ ./main
+ test : =
+   0 is T
+   2 is F
+ test : -
+   (90, 1.140E+01) - (12, 3.100E+00) = (78, 8.300E+00)
+ test : .t.
+   f =
+   (1.0 2.0 3.0
+    4.0 5.0 6.0)
+   .t. f =
+   (1.0 4.0
+    2.0 5.0
+    3.0 6.0)
+ test : .next.
+   1 .next. 3 = 2
+   3 .next. 3 = 1
+   99 .next. 3 = -1
+</code></pre>
+</div>
+</ul>
+
+<!-- References -->
+<ul class='contentBox'>
+<div class='index'>References</div>
+<div class='ref'>
+Fortran/言語の拡張とオーバーロード - Wikibooks
+  + <a href="https://ja.wikibooks.org/wiki/Fortran/%E8%A8%80%E8%AA%9E%E3%81%AE%E6%8B%A1%E5%BC%B5%E3%81%A8%E3%82%AA%E3%83%BC%E3%83%90%E3%83%BC%E3%83%AD%E3%83%BC%E3%83%89">https://ja.wikibooks.org/wiki/Fortran/%E8%A8%80%E8%AA%9E%E3%81%AE%E6%8B%A1%E5%BC%B5%E3%81%A8%E3%82%AA%E3%83%BC%E3%83%90%E3%83%BC%E3%83%AD%E3%83%BC%E3%83%89</a>
+
+Fortran の単項・二項演算子のオーバーロード #Fortran - Qiita
+  + <a href="https://qiita.com/cure_honey/items/99abb9f922089a974d4d">https://qiita.com/cure_honey/items/99abb9f922089a974d4d</a>
+</div>
+</ul>
+</body>
+</html>
+
