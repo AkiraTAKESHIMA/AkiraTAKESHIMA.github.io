@@ -1,0 +1,159 @@
+pre code.hljs {
+  display: block;
+  overflow-x: auto;
+  padding: 1em;
+  font-family: "Cascadia Mono";
+  font-size: 15px;
+  font-weight: normal;
+  line-height: 1.5;
+}
+
+code.hljs {
+  padding: 3px 5px;
+}
+
+/*
+ * PaperColor-inspired syntax highlighting
+ *
+ * Based on PaperColor.vim:
+ * https://github.com/NLKNguyen/papercolor-theme
+ */
+
+/* Base */
+.hljs {
+  color: #444444;
+  background: #eeeeee;
+}
+
+
+/* ============================================================
+ * General Highlight.js classes
+ * ============================================================ */
+
+/* Keywords */
+.hljs-keyword {
+  color: #d70087;
+  font-weight: bold;
+}
+
+/* Literals */
+.hljs-literal {
+  color: #008700;
+  font-weight: bold;
+}
+
+/* Numbers */
+.hljs-number {
+  color: #d75f00;
+}
+
+/* Strings */
+.hljs-string {
+  color: #5f8700;
+}
+
+/* Comments */
+.hljs-comment,
+.hljs-quote {
+  color: #878787;
+}
+
+/* Built-in objects / functions */
+.hljs-built_in {
+  color: #444444;
+}
+
+/* Functions */
+.hljs-title.function_ {
+  color: #0087af;
+  font-weight: bold;
+}
+
+/* Classes */
+.hljs-title.class_,
+.hljs-class .hljs-title {
+  color: #d75f00;
+}
+
+/* Attributes */
+.hljs-attribute,
+.hljs-attr {
+  color: #668bb0;
+}
+
+/* Regular expressions */
+.hljs-regexp {
+  color: #5f8700;
+}
+
+/* Meta information */
+.hljs-meta {
+  color: #8700af;
+}
+
+/* Variables */
+.hljs-variable,
+.hljs-template-variable {
+  color: #8030c0;
+}
+
+/* Links */
+.hljs-link {
+  color: #005faf;
+}
+
+
+/* ============================================================
+ * Python-specific settings
+ * ============================================================ */
+
+/* Python keywords */
+pre code.language-python .hljs-keyword {
+  color: #d70087;
+}
+
+/* Python built-in functions / objects
+ *
+ * Equivalent to:
+ *   pythonBuiltinFunc
+ *   pythonBuiltinObj
+ *
+ * when PaperColor's highlight_builtins option is disabled,
+ * these remain in the foreground color.
+ */
+pre code.language-python .hljs-built_in {
+  color: #028802;
+  font-weight: bold;
+}
+
+/* Python function definitions */
+pre code.language-python .hljs-title.function_ {
+  color: #0087af;
+  font-weight: bold;
+}
+
+/* Python class definitions */
+pre code.language-python .hljs-title.class_ {
+  color: #d75f00;
+}
+
+/* Python strings */
+pre code.language-python .hljs-string {
+  color: #028802;
+}
+
+/* Python boolean literals */
+pre code.language-python .hljs-literal {
+  color: #008700;
+  font-weight: bold;
+}
+
+/* Python decorators */
+pre code.language-python .hljs-meta {
+  color: #d75f00;
+}
+
+/* Python comments */
+pre code.language-python .hljs-comment {
+  color: #878787;
+}
