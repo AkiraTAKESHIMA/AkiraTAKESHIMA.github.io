@@ -7,11 +7,12 @@ C | C
   配列の受け渡し | array.src
   システムコマンドの結果を受け取る | system.src
 
-組み込み手続き | built-in-procedure
-  リンク | link.src
 
 手続き | procedure
+  組み込み手続き | built-in-procedure
+    リンク | link.src
   純粋手続き | pure-procedure.src
+  演算子のオーバーロード | overload-operator.src
 
 LAPACK | LAPACK
   サンプル | sample

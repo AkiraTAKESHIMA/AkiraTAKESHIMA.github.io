@@ -1,0 +1,374 @@
+#===============================================================
+#
+#===============================================================
+## index
+概要
+## index/
+## contents
+　演算子を任意のデータ型に対して定義することができる。
+
+　例えば
+　・構造体同士の足し算
+　・配列の転地
+など。
+
+　/v{=}, /v{+}, /v{.gt.} といった組み込み演算子について処理内容を定義することも、/v{.next.}のように新たな演算子とその処理内容を定義することも可能。
+　モジュールで定義し、必要に応じてロードするのが良い。その際は演算子以外は/s{private}で外部から参照できなくしてしまうのが安全。
+
+#---------------------------------------------------------------
+# assignment
+#---------------------------------------------------------------
+/idx1{assignment}
+　代入は/s{subroutine}で定義する。
+　引数/w{1}が代入先、引数/w{2}が代入元。
+　したがって授受特性/s{(intent)}は引数/w{1}を/s{out}、引数/w{2}を/s{in}とする。
+
+## src fortran
+module a
+  private
+  public :: assignment(=)
+
+  interface assignment(+)
+    module procedure procedure_assign
+  end interface
+
+contains
+
+!
+! define procedures
+!
+
+end module a
+## src/
+
+
+#---------------------------------------------------------------
+# operator
+#---------------------------------------------------------------
+/idx1{operator}
+　演算子は/s{function}で定義する。
+　単項演算子は引数をちょうど/w{1}つ、二項演算子は引数をちょうど/w{2}つ与える。
+
+　/idx2{組み込み演算子}
+　組み込み演算子は、定義されていない入力の組に対して、その処理を新たに定義できる。例えば、/v{+}は/s{integer(4)}と/s{real(8)}を入力とする演算が元々定義されているので、そのような関数を新たにこの演算子で定義することはできない。一方、/s{character}と/s{integer(4)}を入力とする演算は定義されていないので、そのような関数は定義することができる。/v{.gt.}や/v{.eqv.}などのピリオドで囲まれた演算子も同様。
+
+　/idx2{ユーザー定義の演算子}
+　組み込み演算子として定義されていないものは、名前とその処理を自由に定義できる。ただし名前は/v{.gt.}のようにピリオドで囲む形式。
+
+## src fortran
+module a
+  implicit none
+  private
+  public :: operator(+)
+  public :: operator(.op.)
+
+  interface operator(+)
+    module procedure procedure_plus
+  end interface
+
+  interface operator(.op.)
+    module procedure procedure_op_1
+    module procedure procedure_op_2
+  end interface
+
+contains
+
+!
+! define procedures
+!
+
+end module a
+## src/
+
+## contents/
+#===============================================================
+#
+#===============================================================
+## index
+サンプル
+## index/
+## contents
+　/s{=}
+　　代入演算子。
+　　引数 /s{i}: /s{integer(4)}
+　　返値 /s{l}: /s{logical(4)}
+　　処理内容: /s{i} が/s{0}のとき/s{l}は/s{true}, そうでないとき/s{l}は/s{false}.
+
+　/s{-}
+　　二項演算子。
+　　引数 /s{a}: /s{type(ds_)}, /s{b}: /s{type(ds_)}
+　　返値 /s{c}: /s{type(ds_)}
+　　処理内容: /s{a}と/s{b}の対応する要素の和を計算し/s{c}の各要素に代入したものを返す。
+　　※モジュールで構造型/s{ds_}を定義し/s{public}にしているので注意。個人的には構造型定義用のモジュールを別に用意するのが良いと思うが、ここではまとめている。
+
+　/s{.t.}
+　　単項演算子。
+　　引数 /s{A}: /w{2}次元配列 (/sn{real(8)})。形状/s{(N,M)}
+　　返値 /s{B}: /w{2}次元配列 (/sn{real(8)})。形状/s{(M,N)}
+　　処理内容: /s{A}の転置行列を返す。
+
+　/s{.next.}
+　　二項演算子。
+　　－/s{integer(4)}用手続き:
+　　　引数 /s{i}: /s{integer(4)}, imax: /s{integer(4)}
+　　　返値 /s{ii}: /s{integer(4)}
+　　　処理内容: /s{i}に/s{1}を足したものを返す。それが/s{imax}を超えるときは/s{1}を返す。ただし/s{i}が/s{1 <= i <= imax}でないときは/s{-1}を返す。
+　　－/s{integer(8)}用手続き
+　　　引数 /s{i}: /s{integer(8)}, /s{imax}: /s{integer(8)}
+　　　返値 /s{ii}: /s{integer(8)}
+　　　処理内容: 同上
+　　※/s{imax}が/s{1}以上であることを前提としている。本当はもう少し処理をきちんと書くべきだが、ここでは色々省略している。
+
+## src fortran
+module operators
+  implicit none
+  private
+  !-------------------------------------------------------------
+  ! Public procedures
+  !-------------------------------------------------------------
+  public :: assignment(=)
+  public :: operator(-)
+  public :: operator(.t.)
+  public :: operator(.next.)
+  !-------------------------------------------------------------
+  ! Interfaces
+  !-------------------------------------------------------------
+  interface assignment(=)
+    module procedure assign__int4_log4
+  end interface
+
+  interface operator(-)
+    module procedure minus__ds
+  end interface
+
+  interface operator(.t.)
+    module procedure transpose__dble
+  end interface
+
+  interface operator(.next.)
+    module procedure next__int4
+    module procedure next__int8
+  end interface
+  !-------------------------------------------------------------
+  ! Public module variables (type)
+  !-------------------------------------------------------------
+  public :: ds_
+
+  type ds_
+    integer :: i
+    real(8) :: x
+  end type
+  !-------------------------------------------------------------
+contains
+!===============================================================
+!
+!===============================================================
+subroutine assign__int4_log4(b, a)
+  implicit none
+  integer(4), intent(in) :: a
+  logical(4), intent(out) :: b
+
+  b = a == 0
+end subroutine assign__int4_log4
+!===============================================================
+!
+!===============================================================
+type(ds_) function minus__ds(a, b) result(c)
+  implicit none
+  type(ds_), intent(in) :: a, b
+
+  c%i = a%i - b%i
+  c%x = a%x - b%x
+end function minus__ds
+!===============================================================
+!
+!===============================================================
+function transpose__dble(a) result(b)
+  implicit none
+  real(8), intent(in) :: a(:,:)
+  real(8) :: b(size(a,2),size(a,1))
+
+  b = transpose(a)
+end function transpose__dble
+!===============================================================
+!
+!===============================================================
+integer(4) function next__int4(i, imax) result(ii)
+  implicit none
+  integer(4), intent(in) :: i, imax
+
+  if( i > 0 .and. i < imax )then
+    ii = i + 1
+  elseif( i == imax )then
+    ii = 1
+  else
+    ii = -1
+  endif
+end function next__int4
+!===============================================================
+!
+!===============================================================
+integer(8) function next__int8(i, imax) result(ii)
+  implicit none
+  integer(8), intent(in) :: i, imax
+
+  if( i > 0_8 .and. i < imax )then
+    ii = i + 1_8
+  elseif( i == imax )then
+    ii = 1_8
+  else
+    ii = -1_8
+  endif
+end function next__int8
+!===============================================================
+!
+!===============================================================
+logical function abs_gt(a, s) result(res)
+  implicit none
+  character(*), intent(in) :: s
+  real(8), intent(in) :: a
+
+  res = a > len(s)
+end function abs_gt
+!===============================================================
+!
+!===============================================================
+end module operators
+!===============================================================
+!
+!===============================================================
+!
+!
+!
+!
+!
+!===============================================================
+!
+!===============================================================
+program main
+  use operators
+  implicit none
+  logical(4) :: tf
+  integer(4) :: imax, i, ii
+  integer(4) :: jmax, j
+  type(ds_) :: a, b, c
+  real(8), allocatable :: f(:,:), g(:,:)
+  character(32) :: wfmt
+  !-------------------------------------------------------------
+  ! test =
+  !-------------------------------------------------------------
+  print"(1x,a)", 'test : ='
+
+  i = 0
+  tf = i
+  print"(3x,i0,a,l1)", i, ' is ', tf
+
+  i = 2
+  tf = i
+  print"(3x,i0,a,l1)", i, ' is ', tf
+  !-------------------------------------------------------------
+  ! test -
+  !-------------------------------------------------------------
+  print"(1x,a)", 'test : -'
+
+  a%i = 12
+  a%x = 3.1d0
+  b%i = 90
+  b%x = 11.4d0
+  c = b - a
+  print"(3x,'(',i0,',',es10.3,') - (',i0,',',es10.3,') = (',i0,',',es10.3,')')", &
+    b%i, b%x, a%i, a%x, c%i, c%x
+  !-------------------------------------------------------------
+  ! test .t.
+  !-------------------------------------------------------------
+  print"(1x,a)", 'test : .t.'
+
+  imax = 3
+  jmax = 2
+
+  allocate(f(imax,jmax), g(jmax,imax))
+
+  do j = 1, jmax
+  do i = 1, imax
+    f(i,j) = (j-1)*imax + i
+  enddo
+  enddo
+
+  g = .t. f
+
+  print"(3x,a)", 'f = '
+  do j = 1, jmax
+    if( j == 1 )then
+      write(wfmt,"(a,i0,a)") '(3x,"(",f3.1,', imax-1, '(1x,f3.1))'
+    elseif( j == jmax )then
+      write(wfmt,"(a,i0,a)") '(3x,1x,f3.1,', imax-1, '(1x,f3.1),")")'
+    else
+      write(wfmt,"(a,i0,a)") '(3x,1x,f3.1,', imax-1, '(1x,f3.1))'
+    endif
+    print wfmt, f(:,j)
+  enddo
+
+  print"(3x,a)", '.t. f = '
+  do i = 1, imax
+    if( i == 1 )then
+      write(wfmt,"(a,i0,a)") '(3x,"(",f3.1,', jmax-1, '(1x,f3.1))'
+    elseif( i == imax )then
+      write(wfmt,"(a,i0,a)") '(3x,1x,f3.1,', jmax-1, '(1x,f3.1),")")'
+    else
+      write(wfmt,"(a,i0,a)") '(3x,1x,f3.1,', jmax-1, '(1x,f3.1))'
+    endif
+    print wfmt, g(:,i)
+  enddo
+  !-------------------------------------------------------------
+  ! test .next.
+  !-------------------------------------------------------------
+  print"(1x,a)", 'test : .next.'
+  imax = 3
+
+  i = 1
+  ii = i .next. imax
+  print"(3x,2(i0,a),i0)", i, ' .next. ', imax, ' = ', ii
+
+  i = 3
+  ii = i .next. imax
+  print"(3x,2(i0,a),i0)", i, ' .next. ', imax, ' = ', ii
+
+  i = 99
+  ii = i .next. imax
+  print"(3x,2(i0,a),i0)", i, ' .next. ', imax, ' = ', ii
+end program main
+## src/
+
+## src plaintext
+$ gfortrain -o main main.f90
+$ ./main
+ test : =
+   0 is T
+   2 is F
+ test : -
+   (90, 1.140E+01) - (12, 3.100E+00) = (78, 8.300E+00)
+ test : .t.
+   f =
+   (1.0 2.0 3.0
+    4.0 5.0 6.0)
+   .t. f =
+   (1.0 4.0
+    2.0 5.0
+    3.0 6.0)
+ test : .next.
+   1 .next. 3 = 2
+   3 .next. 3 = 1
+   99 .next. 3 = -1
+## src/
+## contents/
+#===============================================================
+#
+#===============================================================
+## ref
+Fortran/言語の拡張とオーバーロード - Wikibooks
+https://ja.wikibooks.org/wiki/Fortran/%E8%A8%80%E8%AA%9E%E3%81%AE%E6%8B%A1%E5%BC%B5%E3%81%A8%E3%82%AA%E3%83%BC%E3%83%90%E3%83%BC%E3%83%AD%E3%83%BC%E3%83%89
+
+Fortran の単項・二項演算子のオーバーロード #Fortran - Qiita
+https://qiita.com/cure_honey/items/99abb9f922089a974d4d
+
+## ref/
