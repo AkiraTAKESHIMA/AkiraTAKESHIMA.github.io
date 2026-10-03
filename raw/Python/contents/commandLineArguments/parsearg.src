@@ -1,0 +1,29 @@
+## index
+
+## index/
+## contents
+## src python
+import argparse
+
+parser = argparse.ArgumentParser(description='This message can be omitted.')
+
+parser.add_argument('positional1', type=str, help='help')
+parser.add_argument('--optional1')
+parser.add_argument('-o2', '--optional2', type=int, choices=(0,1,2))
+parser.add_argument('-o3', '--optional3', type=float, required=True)
+parser.add_argument('--flag', action='store_true')
+
+args = parser.parse_args()
+
+print('positional1='+args.positional1)
+print('optional1='+args.optional1)
+print('optional2='+args.optional2)
+print('optional3='+args.optional3)
+print('flag='+args.flag)
+## src/
+## contents/
+## ref
+ArgumentParserの使い方を簡単にまとめた #Python - Qiita
+https://qiita.com/kzkadc/items/e4fc7bc9c003de1eb6d0
+
+## ref/

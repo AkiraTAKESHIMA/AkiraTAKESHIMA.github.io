@@ -1,0 +1,200 @@
+#===============================================================
+#
+#===============================================================
+## index
+使用するルーチン
+## index/
+## contents
+DSYEVR
+  + /ac{LAPACK: dsyevr}{https://www.netlib.org/lapack/explore-html/d1/d56/group__heevr_gaa334ac0c11113576db0fc37b7565e8b5.html#gaa334ac0c11113576db0fc37b7565e8b5}
+## contents/
+#===============================================================
+#
+#===============================================================
+## index
+/w{Fortran90}用インターフェースのサンプル
+## index/
+## contents
+  ほぼ/w{NAG}のサンプルのまま.
+  ライブラリとして使いやすいようサブルーチン化しただけ.
+
+#$ activate auto_padding_inline
+/srcn{subroutine eig_sym(a, m, w, z, info)}
+
+  /srcn{a} [in] /in{real(8) array of shape (n,n) (n>0)}
+    対称行列.
+
+  /srcn{m} [out] /in{integer}
+    見つかった固有値の数. 0 <= m <= n.
+
+  /srcn{w} [out] /in{real(8) array of shape (n)}
+    固有値. /w{1}から/w{m}番目までの要素に固有値が入っている.
+
+  /srcn{z} [out] /in{real(8) array of shape (n,n)}
+    固有ベクトル. /w{1}から/w{m}番目の列に固有ベクトルが入っている.
+
+  /srcn{info} [out] /in{integer}
+    = 0: 成功
+    < 0: /w{info = -i}のとき, /w{i}番目の引数が不正 (よく分からん)
+    > 0: 内部エラー
+#$ deactivate auto_padding_inline
+
+## src fortran
+subroutine eig_sym(a, m, w, z, info)
+  implicit none
+  real(8), intent(in)  :: a(:,:)  !(n,n)
+  integer, intent(out) :: m
+  real(8), intent(out) :: w(:)    !(n)
+  real(8), intent(out) :: z(:,:)  !(n,n)
+  integer, intent(out) :: info
+
+  integer, parameter :: nb = 64
+  character(1), parameter :: jobz = 'V'
+  character(1), parameter :: range = 'I'
+  character(1), parameter :: uplo = 'U'
+  real(8), allocatable :: a_(:,:)
+  real(8) :: abstol
+  integer :: n, lda, ldz
+  integer :: liwork, lwork
+  integer :: il, iu
+  real(8) :: vl, vu
+  real(8), allocatable :: work(:)
+  integer, allocatable :: iwork(:)
+  integer, allocatable :: isuppz(:)
+  real(8) :: dummy(1) !dummy of work
+  integer :: idum(1)  !dummy of iwork
+
+  n = size(a,1)
+  allocate(a_(n,n))
+  a_ = a
+
+  il = 1
+  iu = n
+
+  lda = n
+  ldz = n
+  m = n
+  allocate(isuppz(2*m))
+
+  ! Use routine workspace query to get optimal workspace.
+  lwork = -1
+  liwork = -1
+  call DSYEVR(jobz, range, uplo, &
+              n, a_, lda, vl, vu, il, iu, abstol, &
+              m, w, z, ldz, isuppz, &
+              dummy, lwork, idum, liwork, info)
+
+  ! Make sure that there is enough workspace for block size nb.
+  lwork = max((nb+6)*n, nint(dummy(1)))
+  liwork = max(10*n, idum(1))
+  allocate(work(lwork), iwork(liwork))
+
+  ! Set the absolute error tolerance for eigenvalue. With ABSTOL
+  ! set to zero, the default value is used instead.
+  abstol = 0.d0
+
+  ! Solve the symmetric eigenvalue problem.
+  call DSYEVR(jobz, range, uplo, &
+              n, a_, lda, vl, vu, il, iu, abstol, &
+              m, w, z, ldz, isuppz, &
+              work, lwork, iwork, liwork, info)
+
+  if( m < n )then
+    w(m+1:n) = 0.d0
+    z(:,m+1:n) = 0.d0
+  endif
+end subroutine eig_sym
+## src/
+## contents/
+#===============================================================
+#
+#===============================================================
+## index
+テストプログラム
+## index/
+## contents
+## math
+A = \begin{pmatrix}
+1 & 2 & 3 & 4 \\
+2 & 2 & 3 & 4 \\
+3 & 3 & 3 & 4 \\
+4 & 4 & 4 & 4 \\
+\end{pmatrix}
+## math/
+
+## src fortran
+program main
+  implicit none
+  integer :: n
+  real(8), allocatable :: A(:,:)
+  real(8), allocatable :: U(:,:)
+  real(8), allocatable :: w(:)
+  real(8), allocatable :: L(:,:)
+  real(8), allocatable :: Uinv(:,:)
+  real(8), allocatable :: B(:,:)
+  integer :: m
+  integer :: info
+  integer :: i
+  character(64) :: wfmt
+
+  n = 4
+  allocate(A(n,n))
+  allocate(w(n))
+  allocate(U(n,n))
+  A(1,:) = (/1,2,3,4/)
+  A(2,:) = (/2,2,3,4/)
+  A(3,:) = (/3,3,3,4/)
+  A(4,:) = (/4,4,4,4/)
+
+  call eig_sym(A, m, w, U, info)
+
+  print*, 'info', info
+
+  write(wfmt,"('(',i0,'(1x,f10.7))')") m
+  print*, 'Eigenvalues'
+  print wfmt, w(1:m)
+
+  print*, 'Eigenvectors'
+  do i = 1, m
+    print wfmt, U(i,:)
+  enddo
+
+  allocate(B(n,n))
+  allocate(L(n,n))
+  allocate(Uinv(n,n))
+  L = diag(w)
+  call inv(U, Uinv, info)
+  B = U .mul. L .mul. Uinv
+
+  print*, 'ULU-1'
+  do i = 1, n
+    print wfmt, B(i,:)
+  enddo
+end program main
+## src/
+
+実行結果
+## src plaintext
+ info           0
+ Eigenvalues
+ -2.0531158 -0.5146428 -0.2943265 12.8620850
+ Eigenvectors
+ -0.7003490 -0.5143736  0.2766776 -0.4103420
+ -0.3592338  0.4851033 -0.6633588 -0.4422453
+  0.1568515  0.5419782  0.6504247 -0.5085321
+  0.5965400 -0.4542623 -0.2456669 -0.6143563
+ ULU-1
+  1.0000000  2.0000000  3.0000000  4.0000000
+  2.0000000  2.0000000  3.0000000  4.0000000
+  3.0000000  3.0000000  3.0000000  4.0000000
+  4.0000000  4.0000000  4.0000000  4.0000000
+## src/
+## contents/
+#===============================================================
+#
+#===============================================================
+## ref
+LAPACK: dsyevr
+https://www.netlib.org/lapack/explore-html/d1/d56/group__heevr_gaa334ac0c11113576db0fc37b7565e8b5.html#gaa334ac0c11113576db0fc37b7565e8b5
+
+## ref/

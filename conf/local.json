@@ -1,6 +1,6 @@
 {
   "platform": "local",
   "url": "file://wsl.localhost/Debian/home/akira/website/AkiraTAKESHIMA.github.io",
-  "style_css": "papercolor-like"
+  "style_css": "vim-papercolor-like"
 }
 

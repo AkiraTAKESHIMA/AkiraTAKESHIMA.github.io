@@ -1,0 +1,107 @@
+#===============================================================
+#
+#===============================================================
+## index
+手順
+## index/
+## contents
+  /w{fortran}と/w{C}のソースコードをそれぞれコンパイルしてオブジェクトファイルを作る.
+  それらをコンパイルリンクして実行ファイルを作る.
+## contents/
+#===============================================================
+#
+#===============================================================
+## index
+/w{C}の関数を/w{Fortran}で呼び出す
+## index/
+## contents
+  /w{Fortran}のメインプログラムで/w{C}の関数を呼び出す.
+
+/idx1{/w{C}の関数}
+  ・/w{C}には/w{Fortran}のような関数とサブルーチンの区別は無く, /w{Fortran}におけるサブルーチンは/w{C}における戻り値の無い関数に相当する.
+  ・/w{C}の関数を/w{Fortran}で呼び出せるようにするには, 関数名の最後にアンダーバーを付ける.
+  ・引数はポインターとして受け渡されるので, /v{*}を付ける.
+
+C func.c
+## src c
+// 引数同士を掛けた値を返す
+int mul_( int *a,  int *b ){
+  return *a * *b;
+}
+## src/
+
+/idx1{/w{Fortran}のプログラム}
+  ・オブジェクトファイルで定義された関数を用いる場合は変数として宣言しておかなければならない (これはオブジェクトファイルのソースコードが/w{C}でも/w{Fortran}でも同じ).
+  ・サブルーチン (戻り値が/v{void}の/w{C}の関数, または/w{Fortran}のサブルーチン) であれば変数宣言は不要.
+
+Fortran main.f90
+## src fortran
+program main
+  implicit none
+  integer :: mul
+  integer :: a, b, c
+
+  a = 2
+  b = 3
+  c = mul(a, b)
+  print*,'a:',a,', b:',b,', a*b:',c
+end program main
+## src/
+
+/idx1{コンパイルと実行}
+## src plaintext
+$ icc -c func.c
+$ ifort -c main.f90
+$ ifort -o main main.o func.o
+$ ./main
+ a:           2 , b:           3 , a*b:           6
+## src/
+## contents/
+#===============================================================
+#
+#===============================================================
+## index
+/w{Fortran}の関数を/w{C}で呼び出す
+## index/
+## contents
+/idx1{/w{Fortran}の関数}
+
+Fotran func.f90
+## src fortran
+function mul(a,b) result(c)
+  implicit none
+  integer, intent(in) :: a, b
+  integer             :: c
+
+  c = a * b
+end function mul
+## src/
+
+/idx1{/w{C}のプログラム}
+  ・/w{Fortran}ではサブルーチンとして定義する.
+  ・/w{C}では/w{extern}して定義する. その際名前の最後にアンダーバーを付ける.
+
+C main.c
+## src c
+#include <stdio.h>
+
+extern void mul_(int *a, int *b, int *c);
+
+int main(){
+  int a = 2;
+  int b = 3;
+  int c;
+  mul_(&a, &b, &c);
+  printf("c: %d\n", c);
+}
+## src/
+
+/idx1{コンパイルと実行}
+## src plaintext
+$ icc -c main.c
+$ ifort -c func.f90
+$ icc -o main main.o func.o
+$ ./main
+c: 6
+## src/
+## contents/

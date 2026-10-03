@@ -1,0 +1,153 @@
+## index
+FortranからCの手続きを呼び出して配列を受け渡す
+## index/
+## contents
+　メインプログラムが/w{Fortran (main.f90)}, 関数が/w{C (func.c)}で書かれており, 関数は配列を引数に取る.
+
+/idx1{/w{C}の関数}
+  ・引数はポインターで与えられる
+  ・配列のインデックスは/w{0}から (配列の大きさ)-1 まで
+
+C func.c
+## src c
+#include <stdio.h>
+
+void put_data_( int *ijmax, int *array ){
+  int ij;
+  for( ij = 0; ij < *ijmax; ij++ ){
+    printf( "ij = %d\n", ij );
+    array[ij] = ij;
+  }
+}
+## src/
+
+/idx1{/w{Fortran}のプログラム}
+  ・/w{C}の関数名の最後のアンダーバーは書かない
+  ・配列はポインター
+  ・/w{Fortran}における配列のインデックスの範囲は/w{C}には反映されないので, インデックスの最小・最大値ではなく大きさのみ与える.
+
+Fortran main.f90
+## src fortran
+program main
+  implicit none
+
+  integer, parameter :: imin = 11
+  integer, parameter :: imax = 20
+  integer :: i
+  integer, pointer :: array(:)
+
+  allocate(array(imin:imax))
+  array(:) = 0
+
+  call put_data(imax-imin+1, array)
+  do i = imin, imax
+    print*, 'i:',i,', array(i):',array(i)
+  enddo
+end program main
+## src/
+
+/idx1{コンパイル・実行}
+## src plaintext
+$ icc -c func.c
+$ ifort -c main.f90
+$ ifort -o main main.o func.o
+$ ./main
+ij = 0
+ij = 1
+ij = 2
+ij = 3
+ij = 4
+ij = 5
+ij = 6
+ij = 7
+ij = 8
+ij = 9
+ i:          11 , array(i):           0
+ i:          12 , array(i):           1
+ i:          13 , array(i):           2
+ i:          14 , array(i):           3
+ i:          15 , array(i):           4
+ i:          16 , array(i):           5
+ i:          17 , array(i):           6
+ i:          18 , array(i):           7
+ i:          19 , array(i):           8
+ i:          20 , array(i):           9
+## src/
+## contents/
+#===============================================================
+#
+#===============================================================
+## index
+/w{C}から/w{Fortran}の手続きを呼び出して配列を受け渡す
+## index/
+## contents
+/idx1{/w{Fortran}の関数}
+## src fortran
+subroutine add_array(array,imax)
+  integer, intent(in)    :: imax
+  integer, intent(inout) :: array(imax)
+  integer :: i
+
+  do i = 1, imax
+    array(i) = array(i) + 10
+  enddo
+end subroutine add_array
+## src/
+
+/idx1{/w{C}のプログラム}
+## src c
+#include <stdio.h>
+
+extern void add_array_(int[], int *);
+
+int main(){
+  int i;
+
+  int length = 10;
+  int array[length];
+
+  for( i = 0; i < length; i++ ){
+    array[i] = i + 1;
+  }
+
+  printf( "Before: \n" );
+  for( i = 0; i < length; i++ ){
+    printf( "%d ", array[i] );
+  }
+  printf( "\n" );
+
+  add_array_( array, &length );
+
+  printf( "After : \n" );
+  for( i = 0; i < length; i++ ){
+    printf( "%d ", array[i] );
+  }
+  printf( "\n" );
+
+  return 0;
+}
+## src/
+
+/idx1{コンパイル・実行}
+## src plaintext
+$ ifort -c func.f90
+$ icc -c main.c
+$ icc -o main main.o func.o
+$ ./main
+Before:
+1 2 3 4 5 6 7 8 9 10
+After :
+11 12 13 14 15 16 17 18 19 20
+## src/
+## contents/
+#===============================================================
+#
+#===============================================================
+## ref
+関数に配列を渡す | C言語入門～bituse～
+https://bituse.info/c/30
+
+C から Fortran を呼び出してみる - 雑食性雑感雑記
+http://kazuki-nagasawa.hatenablog.com/entry/memo_20140715_c_fortran
+
+## ref/

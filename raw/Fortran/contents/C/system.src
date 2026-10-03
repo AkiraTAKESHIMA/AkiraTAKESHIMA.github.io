@@ -1,0 +1,162 @@
+#===============================================================
+#
+#===============================================================
+## index
+システムコマンドの実行結果が欲しい
+## index/
+## contents
+  /w{Fortran}にはシステムコマンドを実行するサブルーチン/v{execute_command_line} (古いものだと/v{system}) があるが, これは本当にシステムを実行するだけで, その結果を得ることはできない.
+  ファイルの存在は/v{access}関数で判定できるが, ディレクトリの存在の判定はできないし, /v{ls}コマンドの結果なども取得できない.
+  (ディレクトリの存在の判定に限って言えば, 実用上は色々と対処の仕方はあるものの、あまり綺麗な方法ではない)
+
+  というわけで/w{C}に出動していただく.
+  /w{C}には/v{popen} (ピーオープン) という, ファイルを開くような感覚でプロセスを開いてコマンドを実行し, その結果を文字列として受け取ったり, さらに別のプロセスに受け渡したりすることができる, なんとも便利な関数がある. /w{Fortran}にも欲しい.
+  詳細や具体例は参考リンクを参照していただくとして, 今回はそれを/w{Fortran}で受け取るプログラムを作ってみる.
+
+  参照 /w{popen}について:
+    + /ac{popen / programming memo}{https://www.aihara.co.jp/~junt/program/popen.html}
+    + /ac{コンピューター：C言語講座：fork,exec,pipeについて}{http://www.ncad.co.jp/~komata/c-kouza3.htm}
+    + /ac{popen関数の挙動まとめ - ペンギンは空を飛ぶ}{https://peng225.hatenablog.com/entry/2021/05/10/183314}
+## contents/
+#===============================================================
+#
+#===============================================================
+## index
+ターミナル画面の幅を取得するサブルーチンを実装する
+## index/
+## contents
+  今回の目的はターミナル画面の幅を取得すること.
+  ターミナル画面の幅はシステムコマンド/v{tput cols}で文字数として取得できる (ちなみに高さ, つまり行数は/v{tput lines}).
+
+## src plaintext
+$ tput cols
+99
+## src/
+
+  まず/w{C}でこのコマンドを実行してその結果を文字配列に格納する関数:
+## src c
+#include <stdio.h>
+#include <string.h>
+
+void c_system_tput_cols_( char *str, int *clen, int *stat ){
+  FILE *fp;
+  int MAXLINE = 1024;
+
+  if( (fp=popen("tput cols", "r")) == NULL ){
+    *stat = 1;
+    strcpy("", str);
+    *clen = 0;
+    return;
+  }
+
+  *stat = 0;
+  fgets(str, MAXLINE, fp);
+  c_lntrim_(str);
+  *clen = strlen(str);
+  return;
+}
+## src/
+
+  /v{fp = popen("tput cols", "r")}
+でシステムコマンド/v{tput cols}を実行し, それを読み込む.
+  実行できなかった場合はステータス/v{*stat}に/v{1}を入れて返す.
+  実行できた場合はその結果を文字配列/v{str}に格納し, さらにその長さを取得して返す.
+
+  次にこれを受け取って幅を数字にして返す/w{Fortran}サブルーチン:
+## src fortran
+subroutine get_terminal_nCols(n, stat)
+  implicit none
+  integer, intent(out) :: nCols
+  integer, intent(out) :: stat
+
+  character(32), pointer :: s
+  integer, pointer :: cl
+  integer, pointer :: cstat
+  integer :: ios
+  !-------------------------------------------------------------
+  stat = 0
+
+  allocate(s)
+  allocate(cl)
+  allocate(cstat)
+
+  call c_system_tput_cols(s, cl, cstat)
+
+  if( cstat == 0 )then
+    read(s(:cl),*,iostat=ios) nCols
+    if( ios /= 0 )then
+      nCols = 0
+      stat = 1
+    endif
+  else
+    nCols = 0
+    stat = 1
+  endif
+
+  deallocate(s)
+  deallocate(cl)
+  deallocate(cstat)
+  !-------------------------------------------------------------
+end subroutine get_terminal_nCols
+## src/
+
+  /w{C}とのコンパイルリンクにおける作法については/ac{こちら}{compilelink.html}にも書かれているとおり,
+    ・/w{Fortran}側で/w{C}の関数を呼び出す際、/w{C}側では関数名の末尾にアンダーバーを付け、/w{Fortran}側では関数名の末尾のアンダーバーを消す
+    ・引数はポインターで渡す
+という点に留意する．
+
+  また文字列 (文字変数の配列) の扱い方が/w{C}と/w{Fortran}とで異なるので, それも気を付ける.
+  /w{C}の文字変数の配列は末尾に/w{NULL}終端文字が付いており, これをそのまま/w{Fortran}側で数値に変換しようとするとエラーとなる.
+  つまり上のコードで
+## src fortran
+  call c_system_tput_cols(s, cl, cstat)
+
+  read(s,*) nCols
+## src/
+などとするとエラーになるということ.
+  これを回避するため, 予め/w{C}の側で文字変数の配列の大きさ/v{cl}を取得しておき, そこまでの部分だけを数値に変換する.
+## src fortran
+  call c_system_tpuc_cols(s, cl, cstat)
+
+  read(s(:cl),*) nCols
+## src/
+
+  これをベースとして, /w{C}の関数が上手く実行できたかどうかを示す/v{cstat}の値に応じて場合分けすればよい.
+
+呼び出し例:
+## src fortran
+program main
+  implicit none
+  integer :: nCols
+  integer :: stat
+
+  call get_terminal_nCols(nCols, stat)
+
+  if( stat == 0 )then
+    print*, 'Column width: ', nCols
+  else
+    print*, 'Failed to get column width'
+  endif
+end program main
+## src/
+
+実行結果: 
+## src plaintext
+$ ./main
+ Column width:         99
+## src/
+## contents/
+#===============================================================
+#
+#===============================================================
+## ref
+popen / programming memo
+https://www.aihara.co.jp/~junt/program/popen.html
+
+コンピューター：C言語講座：fork,exec,pipeについて
+http://www.ncad.co.jp/~komata/c-kouza3.htm
+
+popen関数の挙動まとめ - ペンギンは空を飛ぶ
+https://peng225.hatenablog.com/entry/2021/05/10/183314
+
+## ref/

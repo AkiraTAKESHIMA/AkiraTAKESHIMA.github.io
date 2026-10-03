@@ -1,0 +1,5 @@
+コマンドライン引数 || commandLineArguments
+  parsearg || parsearg.src
+
+作図 (Matplotlib) || matplotlib
+  複数の図 (matplotlib.pyplot.subplots) || subplots.src

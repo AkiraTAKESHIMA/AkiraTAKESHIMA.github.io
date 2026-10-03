@@ -1,0 +1,132 @@
+#===============================================================
+#
+#===============================================================
+## index
+引数と戻り値
+## index/
+#===============================================================
+#
+#===============================================================
+## contents
+公式ドキュメント:
+　/ac{matplotlib.pyplot.subplots — Matplotlib 3.8.4 documentation}{https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplots.html}
+
+/b{matplotlib.pyplot.subplots}(nrows=1, ncols=1, *, sharex=False, sharey=False, sqeeze=True, width_ratios=None, height_ratios=None, subplot_kw=None, gridspec_kw=None, **fig_kw)
+
+/b{rows}, /b{ncols}: int．デフォルト値: 1 　
+  それぞれ行数，列数を指定する． 
+
+/b{sharex}, /b{sharey}: bool or {'none', 'all', 'row', 'col'}．デフォルト値: False
+　各図の間でのx軸，y軸の共有を制御する．
+
+/b{squeeze}: bool．デフォルト値: True
+　戻り値のaxの型を制御する．行数または列数が1の時，配列の対応する軸を消す．
+　Trueのとき:
+　　1行1列のとき，axは単体のAxesとなる．
+　　1行N列(N>1)またはM行1列(M>1)のとき，axはそれぞれAxesの長さNまたは長さMの配列となる．
+　Falseのとき:
+　　N行M列のとき，axは形状[N,M]のAxesの配列となる．N=1またはM=1のときも同様に動作する．
+
+/b{width_ratios}: 長さ/v{ncols}の配列様オブジェクト．オプショナル
+　列の幅の比率を指定する．各列の相対幅は/v{width_ratios[i] / sum(width_ratios)}．
+
+/b{height_ratios}: 長さ/v{nrows}の配列様オブジェクト．オプショナル
+　行の高さの比率を指定する．/v{width_ratios}と同様．
+
+/b{subplot_kw}: dict. オプショナル
+　/w{/ac{add_subplot}{https://matplotlib.org/stable/api/figure_api.html#matplotlib.figure.Figure.add_subplot} API}においてキーワードで与えられるオプションを指定する．
+
+/b{subplot_gridspec}: dict. オプショナル
+　/w{/ac{GridSpec}{https://matplotlib.org/stable/api/_as_gen/matplotlib.gridspec.GridSpec.html#matplotlib.gridspec.GridSpec} API}においてキーワードで与えられるオプションを指定する．
+
+/b{**fig_kw}
+　/w{/ac{pyplot.figure}{https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.figure.html#matplotlib.pyplot.figure} API}で指定可能な引数をキーワードで指定する．
+
+　/w{import}
+## src python
+import numpy as np
+import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
+## src/
+
+　まずはグラフ用に適当なデータを作る．
+## src python
+x = np.linspace(0, 2*np.pi, 400)
+y = np.sin(x**2)
+## src/
+
+/idx1{投影法を指定する}
+　/w{subplot_kw}に/w{dict}型で/w{projection}を与える．
+　/w{projection}には/w{str}，または/w{cartopy.crs}の/w{Projection}などを与える．
+## src python
+fig, (ax1, ax2) = plt.subplots(1, 2, subplot_kw=dict(projection='polar'))
+ax1.plot(x, y)
+ax2.scatter(x, y)
+## src/
+
+## img
+#url="../../../../page/Python/img/matplotlib/subplots/projection_01.png"
+url="${img}/projection_01.png"
+## img/
+
+## src python
+fig, ax = plt.subplots(1, 2, subplot_kw=dict(projection=ccrs.Robinson()))
+ax[0].coastlines(linewidth=0.7)
+ax[1].coastlines(linestyle='dashed')
+## src/
+
+## img
+url="${img}/projection_02.png"
+## img/
+
+/idx1{レイアウトを調整する}
+　/w{left, right, bottom, top}で/w{subplots}の描画領域に対する相対位置を，/w{wspace, hspace}で各/w{subplot}の間の広さを指定する．
+　/w{wspace}は軸の幅の平均値に対する/w{subplot}間の横方向の間隔の比率．/w{hspace}も同様，ただし縦方向に関して指定する．
+## src python
+grd_kw = dict(left=0.2, right=0.8, bottom=0.3, top=0.9,
+              wspace=0.3, hspace=0.2)
+fig, ax = plt.subplots(2, 2, figsize=(8,6), gridspec_kw=grd_kw)
+ax[0,0].plot(x, y)
+plt.savefig(figname, bbox_inches='tight', pad_inches=0.1, dpi=100)
+## src/
+
+## img
+url="${img}/layout.png"
+## img/
+
+/idx1{色を変更する}
+　描画領域の色は/w{plt.figure}と同じように/w{facecolor}などで指定する（ここでは/w{dict}にして与えているが，直接与えても良い）．
+　各/w{subplot}の色は/w{subplot_kw}で与える．
+　/w{subplot}別に与える場合は/w{set_facecolor}を使う．
+## src python
+sub_kw = dict(facecolor='azure')
+fig_kw = dict(facecolor='silver')
+fig, ((ax1, ax2), (ax3, ax4)) = plt.subplots(2, 2, subplot_kw=sub_kw, **fig_kw)
+ax1.plot(x, y)
+ax2.scatter(x, y)
+ax4.set_facecolor('pink')
+ax[0,1].scatter(x, y)
+plt.savefig(figname, bbox_inches='tight', pad_inches=0.1, dpi=100)
+## src/
+
+## img
+url="${img}/colors.png"
+## img/
+## contents/
+#===============================================================
+#
+#===============================================================
+## ref
+matplotlib.pyplot.subplots — Matplotlib 3.8.4 documentation
+https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.subplots.html
+
+matplotlib.pyplot.figure — Matplotlib 3.8.4 documentation
+https://matplotlib.org/stable/api/_as_gen/matplotlib.pyplot.figure.html#matplotlib.pyplot.figure
+
+matplotlib.figure — Matplotlib 3.8.4 documentation
+https://matplotlib.org/stable/api/figure_api.html#matplotlib.figure.Figure.add_subplot
+
+matplotlib.gridspec.GridSpec — Matplotlib 3.8.4 documentation
+https://matplotlib.org/stable/api/_as_gen/matplotlib.gridspec.GridSpec.html#matplotlib.gridspec.GridSpec
+
+## ref/
