@@ -108,6 +108,7 @@ div.ref {
   font-size: 100%;
   line-height: 140%;
   white-space: pre-wrap;
+  overflow-wrap: anywhere;
   padding-left: 15px;
   padding-bottom: 5px;
 }
@@ -145,28 +146,28 @@ span.word-r {
 
 span.var {
   color: rgba(255,180,180);
-  /*font-family: 'Fira Mono', 'consolas', '游ゴシック';*/
-  font-family: 'Lucida console', 'Sans serif', '游ゴシック';
+  /*font-family: 'Lucida console', 'Sans serif', '游ゴシック';*/
+  font-family: "Cascadia Mono", '游ゴシック';
   padding: 0px 2px;
   margin-left: 3px;
   margin-right: 3px;
 }
 span.var-n {
   color: rgba(255,12,12);
-  font-family: 'Lucida console', 'Sans serif', '游ゴシック';
+  font-family: "Cascadia Mono", '游ゴシック';
   padding: 0px 2px;
   margin-left: 0px;
   margin-right: 0px;
 }
 span.var-l {
   color: rgba(255,12,12);
-  font-family: 'Lucida console', 'Sans serif', '游ゴシック';
+  font-family: "Cascadia Mono", '游ゴシック';
   padding: 0px 2px;
   margin-left: 1px;
 }
 span.var-r {
   color: rgba(255,12,12);
-  font-family: 'Lucida console', 'Sans serif', '游ゴシック';
+  font-family: "Cascadia Mono", '游ゴシック';
   padding: 0px 2px;
   margin-right: 1px;
 }
