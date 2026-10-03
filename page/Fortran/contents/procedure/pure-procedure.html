@@ -9,6 +9,7 @@
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/common.css" media="all">
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/common.css" media="all">
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/fortran.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/python.css" media="all">
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/c.css" media="all">
   <script type="text/javascript" src="{const.url}/js/highlight.min.js"></script>
   <script>hljs.highlightAll();</script>
@@ -54,15 +55,15 @@
   <span class="fortranType">implicit</span> <span class="fortranType">none</span>
   <span class="fortranType">integer</span> :: a, b
 
-  a <span class="fortranOperator">=</span> <span class="Number">2</span>
-  b <span class="fortranOperator">=</span> <span class="Number">6</span>
+  a <span class="fortranOperator">=</span> <span class="fortranNumber">2</span>
+  b <span class="fortranOperator">=</span> <span class="fortranNumber">6</span>
 
   <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, purefunc1(a, b)
 
 <span class="fortranUnitHeader">contains</span>
-<span class="Comment">!===============================================================</span>
-<span class="Comment">!</span>
-<span class="Comment">!===============================================================</span>
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranComment">!</span>
+<span class="fortranComment">!===============================================================</span>
 <span class="fortranType">integer</span> <span class="fortranUnitHeader">pure</span> <span class="fortranUnitHeader">function</span> purefunc1(a, b) <span class="fortranUnitHeader">result</span>(c)
   <span class="fortranType">implicit</span> <span class="fortranType">none</span>
   <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">in</span>) :: a, b
@@ -73,28 +74,28 @@
 
   <span class="fortranCall">call</span> puresub1(a, b, c)
 <span class="fortranUnitHeader">end function</span> purefunc1
-<span class="Comment">!===============================================================</span>
-<span class="Comment">!</span>
-<span class="Comment">!===============================================================</span>
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranComment">!</span>
+<span class="fortranComment">!===============================================================</span>
 <span class="fortranType">integer</span> <span class="fortranUnitHeader">pure</span> <span class="fortranUnitHeader">function</span> purefunc2(c) <span class="fortranUnitHeader">result</span>(x)
   <span class="fortranType">implicit</span> <span class="fortranType">none</span>
   <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">in</span>) :: c
 
-  x <span class="fortranOperator">=</span> c <span class="fortranOperator">+</span> <span class="Number">1</span>
+  x <span class="fortranOperator">=</span> c <span class="fortranOperator">+</span> <span class="fortranNumber">1</span>
 <span class="fortranUnitHeader">end function</span> purefunc2
-<span class="Comment">!===============================================================</span>
-<span class="Comment">!</span>
-<span class="Comment">!===============================================================</span>
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranComment">!</span>
+<span class="fortranComment">!===============================================================</span>
 <span class="fortranUnitHeader">pure</span> <span class="fortranUnitHeader">subroutine</span> puresub1(a, b, c)
   <span class="fortranType">implicit</span> <span class="fortranType">none</span>
   <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">in</span>) :: a, b
   <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">inout</span>) :: c
 
-  <span class="Conditional">if</span>( a <span class="fortranOperator">&lt;</span> <span class="Number">0</span> <span class="fortranOperator">.or.</span> b <span class="fortranOperator">&lt;</span> <span class="Number">0</span> ) c <span class="fortranOperator">=</span> <span class="Number">0</span>
+  <span class="fortranConditional">if</span>( a <span class="fortranOperator">&lt;</span> <span class="fortranNumber">0</span> <span class="fortranOperator">.or.</span> b <span class="fortranOperator">&lt;</span> <span class="fortranNumber">0</span> ) c <span class="fortranOperator">=</span> <span class="fortranNumber">0</span>
 <span class="fortranUnitHeader">end subroutine</span> puresub1
-<span class="Comment">!===============================================================</span>
-<span class="Comment">!</span>
-<span class="Comment">!===============================================================</span>
+<span class="fortranComment">!===============================================================</span>
+<span class="fortranComment">!</span>
+<span class="fortranComment">!===============================================================</span>
 <span class="fortranUnitHeader">end program</span> main
 </code></pre>
 </div>

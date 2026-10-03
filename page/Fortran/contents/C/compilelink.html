@@ -9,6 +9,7 @@
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/common.css" media="all">
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/common.css" media="all">
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/fortran.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/python.css" media="all">
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/c.css" media="all">
   <script type="text/javascript" src="{const.url}/js/highlight.min.js"></script>
   <script>hljs.highlightAll();</script>
@@ -55,9 +56,9 @@
   ・引数はポインターとして受け渡されるので, <span class='var'>*</span>を付ける.
 
 C func.c
-<pre><code class="language-c"><span class="Comment">// 引数同士を掛けた値を返す</span>
+<pre><code class="language-c"><span class="cComment">// 引数同士を掛けた値を返す</span>
 <span class="cType">int</span> mul_( <span class="cType">int</span> *a,  <span class="cType">int</span> *b ){
-  <span class="Statement">return</span> *a * *b;
+  <span class="cStatement">return</span> *a * *b;
 }
 </code></pre>
 <span class='index1'><span class='word'>Fortran</span>のプログラム</span>
@@ -70,10 +71,10 @@ Fortran main.f90
   <span class="fortranType">integer</span> :: mul
   <span class="fortranType">integer</span> :: a, b, c
 
-  a <span class="fortranOperator">=</span> <span class="Number">2</span>
-  b <span class="fortranOperator">=</span> <span class="Number">3</span>
+  a <span class="fortranOperator">=</span> <span class="fortranNumber">2</span>
+  b <span class="fortranOperator">=</span> <span class="fortranNumber">3</span>
   c <span class="fortranOperator">=</span> mul(a, b)
-  <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>,<span class="String">'a:'</span>,a,<span class="String">', b:'</span>,b,<span class="String">', a*b:'</span>,c
+  <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>,<span class="fortranString">'a:'</span>,a,<span class="fortranString">', b:'</span>,b,<span class="fortranString">', a*b:'</span>,c
 <span class="fortranUnitHeader">end program</span> main
 </code></pre>
 <span class='index1'>コンパイルと実行</span>
@@ -103,7 +104,7 @@ Fotran func.f90
   ・<span class='word'>C</span>では<span class='word'>extern</span>して定義する. その際名前の最後にアンダーバーを付ける.
 
 C main.c
-<pre><code class="language-c"><span class="Include">#include </span><span class="String">&lt;stdio.h&gt;</span>
+<pre><code class="language-c"><span class="cInclude">#include </span><span class="cString">&lt;stdio.h&gt;</span>
 
 <span class="cStorageClass">extern</span> <span class="cType">void</span> mul_(<span class="cType">int</span> *a, <span class="cType">int</span> *b, <span class="cType">int</span> *c);
 
@@ -112,7 +113,7 @@ C main.c
   <span class="cType">int</span> b = <span class="cNumber">3</span>;
   <span class="cType">int</span> c;
   mul_(&amp;a, &amp;b, &amp;c);
-  printf(<span class="String">&quot;c: </span><span class="cFormat">%d</span><span class="cSpecial">\n</span><span class="String">&quot;</span>, c);
+  printf(<span class="cString">&quot;c: </span><span class="cFormat">%d</span><span class="cSpecial">\n</span><span class="cString">&quot;</span>, c);
 }
 </code></pre>
 <span class='index1'>コンパイルと実行</span>

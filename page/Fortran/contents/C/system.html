@@ -9,6 +9,7 @@
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/common.css" media="all">
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/common.css" media="all">
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/fortran.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/python.css" media="all">
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/c.css" media="all">
   <script type="text/javascript" src="{const.url}/js/highlight.min.js"></script>
   <script>hljs.highlightAll();</script>
@@ -64,25 +65,25 @@
 99
 </code></pre>
   まず<span class='word'>C</span>でこのコマンドを実行してその結果を文字配列に格納する関数:
-<pre><code class="language-c"><span class="Include">#include </span><span class="String">&lt;stdio.h&gt;</span>
-<span class="Include">#include </span><span class="String">&lt;string.h&gt;</span>
+<pre><code class="language-c"><span class="cInclude">#include </span><span class="cString">&lt;stdio.h&gt;</span>
+<span class="cInclude">#include </span><span class="cString">&lt;string.h&gt;</span>
 
 <span class="cType">void</span> c_system_tput_cols_( <span class="cType">char</span> *str, <span class="cType">int</span> *clen, <span class="cType">int</span> *stat ){
   <span class="cType">FILE</span> *fp;
   <span class="cType">int</span> MAXLINE = <span class="cNumber">1024</span>;
 
-  <span class="cConditional">if</span>( (fp=popen(<span class="String">&quot;tput cols&quot;</span>, <span class="String">&quot;r&quot;</span>)) == <span class="cConstant">NULL</span> ){
+  <span class="cConditional">if</span>( (fp=popen(<span class="cString">&quot;tput cols&quot;</span>, <span class="cString">&quot;r&quot;</span>)) == <span class="cConstant">NULL</span> ){
     *stat = <span class="cNumber">1</span>;
-    strcpy(<span class="String">&quot;&quot;</span>, str);
+    strcpy(<span class="cString">&quot;&quot;</span>, str);
     *clen = <span class="cNumber">0</span>;
-    <span class="Statement">return</span>;
+    <span class="cStatement">return</span>;
   }
 
   *stat = <span class="cNumber">0</span>;
   fgets(str, MAXLINE, fp);
   c_lntrim_(str);
   *clen = strlen(str);
-  <span class="Statement">return</span>;
+  <span class="cStatement">return</span>;
 }
 </code></pre>
   <span class='var'>fp = popen("tput cols", "r")</span>
@@ -96,12 +97,12 @@
   <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">out</span>) :: nCols
   <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">out</span>) :: stat
 
-  <span class="fortranType">character</span>(<span class="Number">32</span>), <span class="fortranVariableAttribute">pointer</span> :: s
+  <span class="fortranType">character</span>(<span class="fortranNumber">32</span>), <span class="fortranVariableAttribute">pointer</span> :: s
   <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">pointer</span> :: cl
   <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">pointer</span> :: cstat
   <span class="fortranType">integer</span> :: ios
-  <span class="Comment">!-------------------------------------------------------------</span>
-  stat <span class="fortranOperator">=</span> <span class="Number">0</span>
+  <span class="fortranComment">!-------------------------------------------------------------</span>
+  stat <span class="fortranOperator">=</span> <span class="fortranNumber">0</span>
 
   <span class="fortranCall">allocate</span>(s)
   <span class="fortranCall">allocate</span>(cl)
@@ -109,21 +110,21 @@
 
   <span class="fortranCall">call</span> c_system_tput_cols(s, cl, cstat)
 
-  <span class="Conditional">if</span>( cstat <span class="fortranOperator">==</span> <span class="Number">0</span> )<span class="Conditional">then</span>
+  <span class="fortranConditional">if</span>( cstat <span class="fortranOperator">==</span> <span class="fortranNumber">0</span> )<span class="fortranConditional">then</span>
     <span class="fortranReadWrite">read</span>(s(:cl),<span class="fortranOperator">*</span>,<span class="fortranIO">iostat</span><span class="fortranOperator">=</span>ios) nCols
-    <span class="Conditional">if</span>( ios <span class="fortranOperator">/=</span> <span class="Number">0</span> )<span class="Conditional">then</span>
-      nCols <span class="fortranOperator">=</span> <span class="Number">0</span>
-      stat <span class="fortranOperator">=</span> <span class="Number">1</span>
-    <span class="Conditional">endif</span>
-  <span class="Conditional">else</span>
-    nCols <span class="fortranOperator">=</span> <span class="Number">0</span>
-    stat <span class="fortranOperator">=</span> <span class="Number">1</span>
-  <span class="Conditional">endif</span>
+    <span class="fortranConditional">if</span>( ios <span class="fortranOperator">/=</span> <span class="fortranNumber">0</span> )<span class="fortranConditional">then</span>
+      nCols <span class="fortranOperator">=</span> <span class="fortranNumber">0</span>
+      stat <span class="fortranOperator">=</span> <span class="fortranNumber">1</span>
+    <span class="fortranConditional">endif</span>
+  <span class="fortranConditional">else</span>
+    nCols <span class="fortranOperator">=</span> <span class="fortranNumber">0</span>
+    stat <span class="fortranOperator">=</span> <span class="fortranNumber">1</span>
+  <span class="fortranConditional">endif</span>
 
   <span class="fortranCall">deallocate</span>(s)
   <span class="fortranCall">deallocate</span>(cl)
   <span class="fortranCall">deallocate</span>(cstat)
-  <span class="Comment">!-------------------------------------------------------------</span>
+  <span class="fortranComment">!-------------------------------------------------------------</span>
 <span class="fortranUnitHeader">end subroutine</span> get_terminal_nCols
 </code></pre>
   <span class='word'>C</span>とのコンパイルリンクにおける作法については<a class='colored' href="compilelink.html">こちら</a>にも書かれているとおり,
@@ -153,11 +154,11 @@
 
   <span class="fortranCall">call</span> get_terminal_nCols(nCols, stat)
 
-  <span class="Conditional">if</span>( stat <span class="fortranOperator">==</span> <span class="Number">0</span> )<span class="Conditional">then</span>
-    <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, <span class="String">'Column width: '</span>, nCols
-  <span class="Conditional">else</span>
-    <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, <span class="String">'Failed to get column width'</span>
-  <span class="Conditional">endif</span>
+  <span class="fortranConditional">if</span>( stat <span class="fortranOperator">==</span> <span class="fortranNumber">0</span> )<span class="fortranConditional">then</span>
+    <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, <span class="fortranString">'Column width: '</span>, nCols
+  <span class="fortranConditional">else</span>
+    <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, <span class="fortranString">'Failed to get column width'</span>
+  <span class="fortranConditional">endif</span>
 <span class="fortranUnitHeader">end program</span> main
 </code></pre>
 実行結果:

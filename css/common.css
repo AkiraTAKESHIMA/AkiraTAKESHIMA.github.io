@@ -177,24 +177,28 @@ span.var-r {
 }
 
 span.src {
-  font-family: 'Fira Mono', 'consolas', '游ゴシック';
+  /*font-family: 'Fira Mono', 'consolas', '游ゴシック';*/
+  font-family: "Cascadia Mono", '游ゴシック';
   padding: 0px 2px;
   margin-left: 3px;
   margin-right: 3px;
 }
 span.src-n {
-  font-family: 'Fira Mono', 'consolas', '游ゴシック';
+  /*font-family: 'Fira Mono', 'consolas', '游ゴシック';*/
+  font-family: "Cascadia Mono", '游ゴシック';
   padding: 0px 2px;
   margin-left: 0px;
   margin-right: 0px;
 }
 span.src-l {
-  font-family: 'Fira Mono', 'consolas', '游ゴシック';
+  /*font-family: 'Fira Mono', 'consolas', '游ゴシック';*/
+  font-family: "Cascadia Mono", '游ゴシック';
   padding: 0px 2px;
   margin-left: 1px;
 }
 span.src-r {
-  font-family: 'Fira Mono', 'consolas', '游ゴシック';
+  /*font-family: 'Fira Mono', 'consolas', '游ゴシック';*/
+  font-family: "Cascadia Mono", '游ゴシック';
   padding: 0px 2px;
   margin-right: 1px;
 }

@@ -59,56 +59,67 @@ from PIL import Image
 #
 #===============================================================
 def mklist_inlines():
-    def mkdict_cls(tag, nam, cls, is_double=False):
-        return {kw.inline_tag: tag, 
+    def mkdict_cls(typ, tag, nam, cls, is_double=False):
+        return {kw.inline_typ: typ,
+                kw.inline_tag: tag, 
                 kw.inline_nam: nam, 
                 kw.inline_cls: cls, 
                 kw.inline_is_double: is_double}
 
+    # type
+    # 0: single decoration
+    # 1: single id
+    # 2: double link
+    # 3: double id
+
     inlines = [
-      mkdict_cls('span', 'idx1'  , 'index1' ),
-      mkdict_cls('span', 'idx2'  , 'index2' ),
-      mkdict_cls('span', 'idx3'  , 'index3' ),
-      mkdict_cls('span', 'w'     , 'word'   ),  # both margins
-      mkdict_cls('span', 'wl'    , 'word-l' ),
-      mkdict_cls('span', 'wr'    , 'word-r' ),
-      mkdict_cls('span', 'v'     , 'var'    ),  # both margins
-      mkdict_cls('span', 'vl'    , 'var-l'  ),
-      mkdict_cls('span', 'vr'    , 'var-r'  ),
-      mkdict_cls('span', 'vn'    , 'var-n'  ),
-      mkdict_cls('span', 'i'     , 'it'     ),  # both margins
-      mkdict_cls('span', 'il'    , 'it-l'   ),
-      mkdict_cls('span', 'ir'    , 'it-r'   ),
-      mkdict_cls('span', 'in'    , 'it-n'   ),
-      mkdict_cls('span', 'b'     , 'bld'    ),  # both margins
-      mkdict_cls('span', 'bl'    , 'bld-l'  ),
-      mkdict_cls('span', 'br'    , 'bld-r'  ),
-      mkdict_cls('span', 'bn'    , 'bld-n'  ),
-      mkdict_cls('span', 'b1'    , 'bld1'   ),  # both margins
-      mkdict_cls('span', 'b1l'   , 'bld1-l' ),
-      mkdict_cls('span', 'b1r'   , 'bld1-r' ),
-      mkdict_cls('span', 'b1n'   , 'bld1-n' ),
-      mkdict_cls('span', 'b2'    , 'bld2'   ),  # both margins
-      mkdict_cls('span', 'b2l'   , 'bld2-l' ),
-      mkdict_cls('span', 'b2r'   , 'bld2-r' ),
-      mkdict_cls('span', 'b2n'   , 'bld2-n' ),
-      mkdict_cls('span', 'b3'    , 'bld3'   ),  # both margins
-      mkdict_cls('span', 'b3l'   , 'bld3-l' ),
-      mkdict_cls('span', 'b3r'   , 'bld3-r' ),
-      mkdict_cls('span', 'b3n'   , 'bld3-n' ),
-      mkdict_cls('span', 'c'     , 'comment'),
-      mkdict_cls('span', 'ls-dir', 'ls-dir' ),
-      mkdict_cls('span', 'ls-txt', 'ls-txt' ),
-      mkdict_cls('span', 'ls-ex' , 'ls-ex'  ),
-      mkdict_cls('span', 'c-red'   , 'c-red'   ),
-      mkdict_cls('span', 'c-gray'  , 'c-gray'  ),
-      mkdict_cls('span', 'c-silver', 'c-silver'),
-      mkdict_cls('u'   , 'u'     , 'underlined'),
-      mkdict_cls('a'   , 'a'     , ''          , True),
-      mkdict_cls('a'   , 'ac'    , 'colored'   , True),
-      mkdict_cls('a'   , 'au'    , 'underlined', True),
-      mkdict_cls('a'   , 'aid'   , ''          , True),
-      mkdict_cls('span', 'id'    , ''       ),
+      mkdict_cls(0, 'span', 'idx1'  , 'index1' ),
+      mkdict_cls(0, 'span', 'idx2'  , 'index2' ),
+      mkdict_cls(0, 'span', 'idx3'  , 'index3' ),
+      mkdict_cls(0, 'span', 'w'     , 'word'   ),  # both margins
+      mkdict_cls(0, 'span', 'wl'    , 'word-l' ),
+      mkdict_cls(0, 'span', 'wr'    , 'word-r' ),
+      mkdict_cls(0, 'span', 'v'     , 'var'    ),  # both margins
+      mkdict_cls(0, 'span', 'vl'    , 'var-l'  ),
+      mkdict_cls(0, 'span', 'vr'    , 'var-r'  ),
+      mkdict_cls(0, 'span', 'vn'    , 'var-n'  ),
+      mkdict_cls(0, 'span', 's'     , 'var'    ),  # both margins
+      mkdict_cls(0, 'span', 'sl'    , 'src-l'  ),
+      mkdict_cls(0, 'span', 'sr'    , 'src-r'  ),
+      mkdict_cls(0, 'span', 'sn'    , 'src-n'  ),
+      mkdict_cls(0, 'span', 'i'     , 'it'     ),  # both margins
+      mkdict_cls(0, 'span', 'il'    , 'it-l'   ),
+      mkdict_cls(0, 'span', 'ir'    , 'it-r'   ),
+      mkdict_cls(0, 'span', 'in'    , 'it-n'   ),
+      mkdict_cls(0, 'span', 'b'     , 'bld'    ),  # both margins
+      mkdict_cls(0, 'span', 'bl'    , 'bld-l'  ),
+      mkdict_cls(0, 'span', 'br'    , 'bld-r'  ),
+      mkdict_cls(0, 'span', 'bn'    , 'bld-n'  ),
+      mkdict_cls(0, 'span', 'b1'    , 'bld1'   ),  # both margins
+      mkdict_cls(0, 'span', 'b1l'   , 'bld1-l' ),
+      mkdict_cls(0, 'span', 'b1r'   , 'bld1-r' ),
+      mkdict_cls(0, 'span', 'b1n'   , 'bld1-n' ),
+      mkdict_cls(0, 'span', 'b2'    , 'bld2'   ),  # both margins
+      mkdict_cls(0, 'span', 'b2l'   , 'bld2-l' ),
+      mkdict_cls(0, 'span', 'b2r'   , 'bld2-r' ),
+      mkdict_cls(0, 'span', 'b2n'   , 'bld2-n' ),
+      mkdict_cls(0, 'span', 'b3'    , 'bld3'   ),  # both margins
+      mkdict_cls(0, 'span', 'b3l'   , 'bld3-l' ),
+      mkdict_cls(0, 'span', 'b3r'   , 'bld3-r' ),
+      mkdict_cls(0, 'span', 'b3n'   , 'bld3-n' ),
+      mkdict_cls(0, 'span', 'c'     , 'comment'),
+      mkdict_cls(0, 'span', 'ls-dir', 'ls-dir' ),
+      mkdict_cls(0, 'span', 'ls-txt', 'ls-txt' ),
+      mkdict_cls(0, 'span', 'ls-ex' , 'ls-ex'  ),
+      mkdict_cls(0, 'u'   , 'u'     , 'underlined'),
+      mkdict_cls(0, 'span', 'c-red'   , 'c-red'   ),
+      mkdict_cls(0, 'span', 'c-gray'  , 'c-gray'  ),
+      mkdict_cls(0, 'span', 'c-silver', 'c-silver'),
+      mkdict_cls(1, 'span', 'id'    , ''       ),
+      mkdict_cls(2, 'a'   , 'a'     , ''          , True),
+      mkdict_cls(2, 'a'   , 'ac'    , 'colored'   , True),
+      mkdict_cls(2, 'a'   , 'au'    , 'underlined', True),
+      mkdict_cls(3, 'a'   , 'aid'   , ''          , True),
     ]
 
     return inlines
@@ -116,61 +127,38 @@ def mklist_inlines():
 #
 #===============================================================
 def is_inline_single_decoration(nam):
-    return nam in [
-        'idx1',
-        'idx2',
-        'idx3',
-        'w',
-        'wl',
-        'wr',
-        'v',
-        'vl',
-        'vr',
-        'vn',
-        'i',
-        'il',
-        'ir',
-        'in',
-        'b',
-        'bl',
-        'br',
-        'bn',
-        'b1',
-        'b1l',
-        'b1r',
-        'b1n',
-        'b2',
-        'b2l',
-        'b2r',
-        'b2n',
-        'b3',
-        'b3l',
-        'b3r',
-        'b3n',
-        'c',
-        'ls-dir',
-        'ls-txt',
-        'ls-ex',
-        'c-red',
-        'c-gray',
-        'c-silver',
-        'u',
-    ]
+    for inline in inlines:
+        if inline[kw.inline_nam] == nam:
+            if inline[kw.inline_typ] == 0:
+                return True
+    return False
 #===============================================================
-#
+# id
 #===============================================================
 def is_inline_single_id(nam):
-    return nam in ['id']
+    for inline in inlines:
+        if inline[kw.inline_nam] == nam:
+            if inline[kw.inline_typ] == 1:
+                return True
+    return False
 #===============================================================
-#
+# a, ac, au
 #===============================================================
 def is_inline_double_link(nam):
-    return nam in ['a', 'ac', 'au']
+    for inline in inlines:
+        if inline[kw.inline_nam] == nam:
+            if inline[kw.inline_typ] == 2:
+                return True
+    return False
 #===============================================================
-#
+# aid
 #===============================================================
 def is_inline_double_id(nam):
-    return nam in ['aid']
+    for inline in inlines:
+        if inline[kw.inline_nam] == nam:
+            if inline[kw.inline_typ] == 3:
+                return True
+    return False
 #===============================================================
 #
 #===============================================================
@@ -2356,6 +2344,7 @@ class Keyword():
     tag = 'tag'
     cls = 'class'
 
+    inline_typ = 'typ'
     inline_tag = 'tag'
     inline_nam = 'nam'
     inline_cls = 'cls'

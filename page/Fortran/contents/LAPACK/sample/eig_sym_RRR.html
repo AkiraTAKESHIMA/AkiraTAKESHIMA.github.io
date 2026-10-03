@@ -9,6 +9,7 @@
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/common.css" media="all">
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/common.css" media="all">
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/fortran.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/python.css" media="all">
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/c.css" media="all">
   <script type="text/javascript" src="{const.url}/js/highlight.min.js"></script>
   <script>hljs.highlightAll();</script>
@@ -50,88 +51,88 @@ DSYEVR
   ほぼ<span class='word'>NAG</span>のサンプルのまま.
   ライブラリとして使いやすいようサブルーチン化しただけ.
 
-/srcn{subroutine eig_sym(a, m, w, z, info)}
+<span class='src-n'>subroutine eig_sym(a, m, w, z, info)</span>
 
-  /srcn{a} [in] <span class='it-n'>real(8) array of shape (n,n) (n>0)</span>
+  <span class='src-n'>a</span> [in] <span class='it-n'>real(8) array of shape (n,n) (n>0)</span>
     対称行列.
 
-  /srcn{m} [out] <span class='it-n'>integer</span>
+  <span class='src-n'>m</span> [out] <span class='it-n'>integer</span>
     見つかった固有値の数. 0 <= m <= n.
 
-  /srcn{w} [out] <span class='it-n'>real(8) array of shape (n)</span>
+  <span class='src-n'>w</span> [out] <span class='it-n'>real(8) array of shape (n)</span>
     固有値. <span class='word'>1</span>から<span class='word'>m</span>番目までの要素に固有値が入っている.
 
-  /srcn{z} [out] <span class='it-n'>real(8) array of shape (n,n)</span>
+  <span class='src-n'>z</span> [out] <span class='it-n'>real(8) array of shape (n,n)</span>
     固有ベクトル. <span class='word'>1</span>から<span class='word'>m</span>番目の列に固有ベクトルが入っている.
 
-  /srcn{info} [out] <span class='it-n'>integer</span>
+  <span class='src-n'>info</span> [out] <span class='it-n'>integer</span>
     = 0: 成功
     < 0: <span class='word'>info = -i</span>のとき, <span class='word'>i</span>番目の引数が不正 (よく分からん)
     > 0: 内部エラー
 
 <pre><code class="language-fortran"><span class="fortranUnitHeader">subroutine</span> eig_sym(a, m, w, z, info)
   <span class="fortranType">implicit</span> <span class="fortranType">none</span>
-<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">in</span>)  :: a(:,:)  <span class="Comment">!(n,n)</span>
+<span class="fortranType">  real</span>(<span class="fortranNumber">8</span>), <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">in</span>)  :: a(:,:)  <span class="fortranComment">!(n,n)</span>
   <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">out</span>) :: m
-<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">out</span>) :: w(:)    <span class="Comment">!(n)</span>
-<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">out</span>) :: z(:,:)  <span class="Comment">!(n,n)</span>
+<span class="fortranType">  real</span>(<span class="fortranNumber">8</span>), <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">out</span>) :: w(:)    <span class="fortranComment">!(n)</span>
+<span class="fortranType">  real</span>(<span class="fortranNumber">8</span>), <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">out</span>) :: z(:,:)  <span class="fortranComment">!(n,n)</span>
   <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">intent</span>(<span class="fortranVariableAttribute">out</span>) :: info
 
-  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">parameter</span> :: nb <span class="fortranOperator">=</span> <span class="Number">64</span>
-  <span class="fortranType">character</span>(<span class="Number">1</span>), <span class="fortranVariableAttribute">parameter</span> :: jobz <span class="fortranOperator">=</span> <span class="String">'V'</span>
-  <span class="fortranType">character</span>(<span class="Number">1</span>), <span class="fortranVariableAttribute">parameter</span> :: <span class="fortranIntrinsic">range</span> <span class="fortranOperator">=</span> <span class="String">'I'</span>
-  <span class="fortranType">character</span>(<span class="Number">1</span>), <span class="fortranVariableAttribute">parameter</span> :: uplo <span class="fortranOperator">=</span> <span class="String">'U'</span>
-<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: a_(:,:)
-<span class="fortranType">  real</span>(<span class="Number">8</span>) :: abstol
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">parameter</span> :: nb <span class="fortranOperator">=</span> <span class="fortranNumber">64</span>
+  <span class="fortranType">character</span>(<span class="fortranNumber">1</span>), <span class="fortranVariableAttribute">parameter</span> :: jobz <span class="fortranOperator">=</span> <span class="fortranString">'V'</span>
+  <span class="fortranType">character</span>(<span class="fortranNumber">1</span>), <span class="fortranVariableAttribute">parameter</span> :: <span class="fortranIntrinsic">range</span> <span class="fortranOperator">=</span> <span class="fortranString">'I'</span>
+  <span class="fortranType">character</span>(<span class="fortranNumber">1</span>), <span class="fortranVariableAttribute">parameter</span> :: uplo <span class="fortranOperator">=</span> <span class="fortranString">'U'</span>
+<span class="fortranType">  real</span>(<span class="fortranNumber">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: a_(:,:)
+<span class="fortranType">  real</span>(<span class="fortranNumber">8</span>) :: abstol
   <span class="fortranType">integer</span> :: n, lda, ldz
   <span class="fortranType">integer</span> :: liwork, lwork
   <span class="fortranType">integer</span> :: il, iu
-<span class="fortranType">  real</span>(<span class="Number">8</span>) :: vl, vu
-<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: work(:)
+<span class="fortranType">  real</span>(<span class="fortranNumber">8</span>) :: vl, vu
+<span class="fortranType">  real</span>(<span class="fortranNumber">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: work(:)
   <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">allocatable</span> :: iwork(:)
   <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">allocatable</span> :: isuppz(:)
-<span class="fortranType">  real</span>(<span class="Number">8</span>) :: dummy(<span class="Number">1</span>) <span class="Comment">!dummy of work</span>
-  <span class="fortranType">integer</span> :: idum(<span class="Number">1</span>)  <span class="Comment">!dummy of iwork</span>
+<span class="fortranType">  real</span>(<span class="fortranNumber">8</span>) :: dummy(<span class="fortranNumber">1</span>) <span class="fortranComment">!dummy of work</span>
+  <span class="fortranType">integer</span> :: idum(<span class="fortranNumber">1</span>)  <span class="fortranComment">!dummy of iwork</span>
 
-  n <span class="fortranOperator">=</span> <span class="fortranIntrinsic">size</span>(a,<span class="Number">1</span>)
+  n <span class="fortranOperator">=</span> <span class="fortranIntrinsic">size</span>(a,<span class="fortranNumber">1</span>)
   <span class="fortranCall">allocate</span>(a_(n,n))
   a_ <span class="fortranOperator">=</span> a
 
-  il <span class="fortranOperator">=</span> <span class="Number">1</span>
+  il <span class="fortranOperator">=</span> <span class="fortranNumber">1</span>
   iu <span class="fortranOperator">=</span> n
 
   lda <span class="fortranOperator">=</span> n
   ldz <span class="fortranOperator">=</span> n
   m <span class="fortranOperator">=</span> n
-  <span class="fortranCall">allocate</span>(isuppz(<span class="Number">2</span><span class="fortranOperator">*</span>m))
+  <span class="fortranCall">allocate</span>(isuppz(<span class="fortranNumber">2</span><span class="fortranOperator">*</span>m))
 
-  <span class="Comment">! Use routine workspace query to get optimal workspace.</span>
-  lwork <span class="fortranOperator">=</span> <span class="fortranOperator">-</span><span class="Number">1</span>
-  liwork <span class="fortranOperator">=</span> <span class="fortranOperator">-</span><span class="Number">1</span>
+  <span class="fortranComment">! Use routine workspace query to get optimal workspace.</span>
+  lwork <span class="fortranOperator">=</span> <span class="fortranOperator">-</span><span class="fortranNumber">1</span>
+  liwork <span class="fortranOperator">=</span> <span class="fortranOperator">-</span><span class="fortranNumber">1</span>
   <span class="fortranCall">call</span> DSYEVR(jobz, <span class="fortranIntrinsic">range</span>, uplo, <span class="fortranContinueMark">&amp;</span>
               n, a_, lda, vl, vu, il, iu, abstol, <span class="fortranContinueMark">&amp;</span>
               m, w, z, ldz, isuppz, <span class="fortranContinueMark">&amp;</span>
               dummy, lwork, idum, liwork, info)
 
-  <span class="Comment">! Make sure that there is enough workspace for block size nb.</span>
-  lwork <span class="fortranOperator">=</span> <span class="fortranIntrinsic">max</span>((nb<span class="fortranOperator">+</span><span class="Number">6</span>)<span class="fortranOperator">*</span>n, <span class="fortranIntrinsic">nint</span>(dummy(<span class="Number">1</span>)))
-  liwork <span class="fortranOperator">=</span> <span class="fortranIntrinsic">max</span>(<span class="Number">10</span><span class="fortranOperator">*</span>n, idum(<span class="Number">1</span>))
+  <span class="fortranComment">! Make sure that there is enough workspace for block size nb.</span>
+  lwork <span class="fortranOperator">=</span> <span class="fortranIntrinsic">max</span>((nb<span class="fortranOperator">+</span><span class="fortranNumber">6</span>)<span class="fortranOperator">*</span>n, <span class="fortranIntrinsic">nint</span>(dummy(<span class="fortranNumber">1</span>)))
+  liwork <span class="fortranOperator">=</span> <span class="fortranIntrinsic">max</span>(<span class="fortranNumber">10</span><span class="fortranOperator">*</span>n, idum(<span class="fortranNumber">1</span>))
   <span class="fortranCall">allocate</span>(work(lwork), iwork(liwork))
 
-  <span class="Comment">! Set the absolute error tolerance for eigenvalue. With ABSTOL</span>
-  <span class="Comment">! set to zero, the default value is used instead.</span>
-  abstol <span class="fortranOperator">=</span> <span class="Float">0.d0</span>
+  <span class="fortranComment">! Set the absolute error tolerance for eigenvalue. With ABSTOL</span>
+  <span class="fortranComment">! set to zero, the default value is used instead.</span>
+  abstol <span class="fortranOperator">=</span> <span class="fortranFloat">0.d0</span>
 
-  <span class="Comment">! Solve the symmetric eigenvalue problem.</span>
+  <span class="fortranComment">! Solve the symmetric eigenvalue problem.</span>
   <span class="fortranCall">call</span> DSYEVR(jobz, <span class="fortranIntrinsic">range</span>, uplo, <span class="fortranContinueMark">&amp;</span>
               n, a_, lda, vl, vu, il, iu, abstol, <span class="fortranContinueMark">&amp;</span>
               m, w, z, ldz, isuppz, <span class="fortranContinueMark">&amp;</span>
               work, lwork, iwork, liwork, info)
 
-  <span class="Conditional">if</span>( m <span class="fortranOperator">&lt;</span> n )<span class="Conditional">then</span>
-    w(m<span class="fortranOperator">+</span><span class="Number">1</span>:n) <span class="fortranOperator">=</span> <span class="Float">0.d0</span>
-    z(:,m<span class="fortranOperator">+</span><span class="Number">1</span>:n) <span class="fortranOperator">=</span> <span class="Float">0.d0</span>
-  <span class="Conditional">endif</span>
+  <span class="fortranConditional">if</span>( m <span class="fortranOperator">&lt;</span> n )<span class="fortranConditional">then</span>
+    w(m<span class="fortranOperator">+</span><span class="fortranNumber">1</span>:n) <span class="fortranOperator">=</span> <span class="fortranFloat">0.d0</span>
+    z(:,m<span class="fortranOperator">+</span><span class="fortranNumber">1</span>:n) <span class="fortranOperator">=</span> <span class="fortranFloat">0.d0</span>
+  <span class="fortranConditional">endif</span>
 <span class="fortranUnitHeader">end subroutine</span> eig_sym
 </code></pre>
 </div>
@@ -148,38 +149,38 @@ DSYEVR
 <pre><code class="language-fortran"><span class="fortranUnitHeader">program</span> main
   <span class="fortranType">implicit</span> <span class="fortranType">none</span>
   <span class="fortranType">integer</span> :: n
-<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: A(:,:)
-<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: U(:,:)
-<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: w(:)
-<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: L(:,:)
-<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: Uinv(:,:)
-<span class="fortranType">  real</span>(<span class="Number">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: B(:,:)
+<span class="fortranType">  real</span>(<span class="fortranNumber">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: A(:,:)
+<span class="fortranType">  real</span>(<span class="fortranNumber">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: U(:,:)
+<span class="fortranType">  real</span>(<span class="fortranNumber">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: w(:)
+<span class="fortranType">  real</span>(<span class="fortranNumber">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: L(:,:)
+<span class="fortranType">  real</span>(<span class="fortranNumber">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: Uinv(:,:)
+<span class="fortranType">  real</span>(<span class="fortranNumber">8</span>), <span class="fortranVariableAttribute">allocatable</span> :: B(:,:)
   <span class="fortranType">integer</span> :: m
   <span class="fortranType">integer</span> :: info
   <span class="fortranType">integer</span> :: i
-  <span class="fortranType">character</span>(<span class="Number">64</span>) :: wfmt
+  <span class="fortranType">character</span>(<span class="fortranNumber">64</span>) :: wfmt
 
-  n <span class="fortranOperator">=</span> <span class="Number">4</span>
+  n <span class="fortranOperator">=</span> <span class="fortranNumber">4</span>
   <span class="fortranCall">allocate</span>(A(n,n))
   <span class="fortranCall">allocate</span>(w(n))
   <span class="fortranCall">allocate</span>(U(n,n))
-  A(<span class="Number">1</span>,:) <span class="fortranOperator">=</span> (<span class="fortranOperator">/</span><span class="Number">1</span>,<span class="Number">2</span>,<span class="Number">3</span>,<span class="Number">4</span><span class="fortranOperator">/</span>)
-  A(<span class="Number">2</span>,:) <span class="fortranOperator">=</span> (<span class="fortranOperator">/</span><span class="Number">2</span>,<span class="Number">2</span>,<span class="Number">3</span>,<span class="Number">4</span><span class="fortranOperator">/</span>)
-  A(<span class="Number">3</span>,:) <span class="fortranOperator">=</span> (<span class="fortranOperator">/</span><span class="Number">3</span>,<span class="Number">3</span>,<span class="Number">3</span>,<span class="Number">4</span><span class="fortranOperator">/</span>)
-  A(<span class="Number">4</span>,:) <span class="fortranOperator">=</span> (<span class="fortranOperator">/</span><span class="Number">4</span>,<span class="Number">4</span>,<span class="Number">4</span>,<span class="Number">4</span><span class="fortranOperator">/</span>)
+  A(<span class="fortranNumber">1</span>,:) <span class="fortranOperator">=</span> (<span class="fortranOperator">/</span><span class="fortranNumber">1</span>,<span class="fortranNumber">2</span>,<span class="fortranNumber">3</span>,<span class="fortranNumber">4</span><span class="fortranOperator">/</span>)
+  A(<span class="fortranNumber">2</span>,:) <span class="fortranOperator">=</span> (<span class="fortranOperator">/</span><span class="fortranNumber">2</span>,<span class="fortranNumber">2</span>,<span class="fortranNumber">3</span>,<span class="fortranNumber">4</span><span class="fortranOperator">/</span>)
+  A(<span class="fortranNumber">3</span>,:) <span class="fortranOperator">=</span> (<span class="fortranOperator">/</span><span class="fortranNumber">3</span>,<span class="fortranNumber">3</span>,<span class="fortranNumber">3</span>,<span class="fortranNumber">4</span><span class="fortranOperator">/</span>)
+  A(<span class="fortranNumber">4</span>,:) <span class="fortranOperator">=</span> (<span class="fortranOperator">/</span><span class="fortranNumber">4</span>,<span class="fortranNumber">4</span>,<span class="fortranNumber">4</span>,<span class="fortranNumber">4</span><span class="fortranOperator">/</span>)
 
   <span class="fortranCall">call</span> eig_sym(A, m, w, U, info)
 
-  <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, <span class="String">'info'</span>, info
+  <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, <span class="fortranString">'info'</span>, info
 
-  <span class="fortranReadWrite">write</span>(wfmt,<span class="String">&quot;('(',i0,'(1x,f10.7))')&quot;</span>) m
-  <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, <span class="String">'Eigenvalues'</span>
-  <span class="fortranReadWrite">print</span> wfmt, w(<span class="Number">1</span>:m)
+  <span class="fortranReadWrite">write</span>(wfmt,<span class="fortranString">&quot;('(',i0,'(1x,f10.7))')&quot;</span>) m
+  <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, <span class="fortranString">'Eigenvalues'</span>
+  <span class="fortranReadWrite">print</span> wfmt, w(<span class="fortranNumber">1</span>:m)
 
-  <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, <span class="String">'Eigenvectors'</span>
-  <span class="Repeat">do</span> i <span class="fortranOperator">=</span> <span class="Number">1</span>, m
+  <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, <span class="fortranString">'Eigenvectors'</span>
+  <span class="fortranRepeat">do</span> i <span class="fortranOperator">=</span> <span class="fortranNumber">1</span>, m
     <span class="fortranReadWrite">print</span> wfmt, U(i,:)
-  <span class="Repeat">enddo</span>
+  <span class="fortranRepeat">enddo</span>
 
   <span class="fortranCall">allocate</span>(B(n,n))
   <span class="fortranCall">allocate</span>(L(n,n))
@@ -188,10 +189,10 @@ DSYEVR
   <span class="fortranCall">call</span> inv(U, Uinv, info)
   B <span class="fortranOperator">=</span> U <span class="fortranOperator">.mul.</span> L <span class="fortranOperator">.mul.</span> Uinv
 
-  <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, <span class="String">'ULU-1'</span>
-  <span class="Repeat">do</span> i <span class="fortranOperator">=</span> <span class="Number">1</span>, n
+  <span class="fortranReadWrite">print</span><span class="fortranOperator">*</span>, <span class="fortranString">'ULU-1'</span>
+  <span class="fortranRepeat">do</span> i <span class="fortranOperator">=</span> <span class="fortranNumber">1</span>, n
     <span class="fortranReadWrite">print</span> wfmt, B(i,:)
-  <span class="Repeat">enddo</span>
+  <span class="fortranRepeat">enddo</span>
 <span class="fortranUnitHeader">end program</span> main
 </code></pre>
 実行結果

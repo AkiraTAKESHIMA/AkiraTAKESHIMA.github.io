@@ -9,6 +9,7 @@
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/common.css" media="all">
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/common.css" media="all">
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/fortran.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/python.css" media="all">
   <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/c.css" media="all">
   <script type="text/javascript" src="{const.url}/js/highlight.min.js"></script>
   <script>hljs.highlightAll();</script>
@@ -53,17 +54,17 @@
 <span class='index1'>サンプル</span>
 <pre><code class="language-fortran"><span class="fortranUnitHeader">program</span> main
   <span class="fortranType">implicit</span> <span class="fortranType">none</span>
-  <span class="fortranType">character</span>(<span class="Number">1</span>), <span class="fortranVariableAttribute">parameter</span> :: esc <span class="fortranOperator">=</span> <span class="fortranIntrinsic">achar</span>(<span class="Number">27</span>)
-  <span class="fortranType">character</span>(<span class="Number">1</span>), <span class="fortranVariableAttribute">parameter</span> :: cr  <span class="fortranOperator">=</span> <span class="fortranIntrinsic">achar</span>(<span class="Number">13</span>)
-  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">parameter</span> :: stdout <span class="fortranOperator">=</span> <span class="Number">6</span>
+  <span class="fortranType">character</span>(<span class="fortranNumber">1</span>), <span class="fortranVariableAttribute">parameter</span> :: esc <span class="fortranOperator">=</span> <span class="fortranIntrinsic">achar</span>(<span class="fortranNumber">27</span>)
+  <span class="fortranType">character</span>(<span class="fortranNumber">1</span>), <span class="fortranVariableAttribute">parameter</span> :: cr  <span class="fortranOperator">=</span> <span class="fortranIntrinsic">achar</span>(<span class="fortranNumber">13</span>)
+  <span class="fortranType">integer</span>, <span class="fortranVariableAttribute">parameter</span> :: stdout <span class="fortranOperator">=</span> <span class="fortranNumber">6</span>
   <span class="fortranType">integer</span> :: i
 
   <span class="fortranReadWrite">write</span>(stdout,<span class="fortranOperator">*</span>)
-  <span class="Repeat">do</span> i <span class="fortranOperator">=</span> <span class="Number">1</span>, <span class="Number">10</span>
-    <span class="fortranReadWrite">write</span>(stdout,<span class="String">&quot;(a)&quot;</span>,<span class="fortranIO">advance</span><span class="fortranOperator">=</span><span class="String">'no'</span>) esc<span class="fortranOperator">//</span><span class="String">'M'</span>
-    <span class="fortranReadWrite">write</span>(stdout,<span class="String">&quot;(i0)&quot;</span>) i
-    <span class="fortranCall">call</span> sleep(<span class="Number">1</span>)
-  <span class="Repeat">enddo</span>
+  <span class="fortranRepeat">do</span> i <span class="fortranOperator">=</span> <span class="fortranNumber">1</span>, <span class="fortranNumber">10</span>
+    <span class="fortranReadWrite">write</span>(stdout,<span class="fortranString">&quot;(a)&quot;</span>,<span class="fortranIO">advance</span><span class="fortranOperator">=</span><span class="fortranString">'no'</span>) esc<span class="fortranOperator">//</span><span class="fortranString">'M'</span>
+    <span class="fortranReadWrite">write</span>(stdout,<span class="fortranString">&quot;(i0)&quot;</span>) i
+    <span class="fortranCall">call</span> sleep(<span class="fortranNumber">1</span>)
+  <span class="fortranRepeat">enddo</span>
 <span class="fortranUnitHeader">end program</span> main
 </code></pre>
 実行例

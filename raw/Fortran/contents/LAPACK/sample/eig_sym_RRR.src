@@ -19,21 +19,21 @@ DSYEVR
   ライブラリとして使いやすいようサブルーチン化しただけ.
 
 #$ activate auto_padding_inline
-/srcn{subroutine eig_sym(a, m, w, z, info)}
+/sn{subroutine eig_sym(a, m, w, z, info)}
 
-  /srcn{a} [in] /in{real(8) array of shape (n,n) (n>0)}
+  /sn{a} [in] /in{real(8) array of shape (n,n) (n>0)}
     対称行列.
 
-  /srcn{m} [out] /in{integer}
+  /sn{m} [out] /in{integer}
     見つかった固有値の数. 0 <= m <= n.
 
-  /srcn{w} [out] /in{real(8) array of shape (n)}
+  /sn{w} [out] /in{real(8) array of shape (n)}
     固有値. /w{1}から/w{m}番目までの要素に固有値が入っている.
 
-  /srcn{z} [out] /in{real(8) array of shape (n,n)}
+  /sn{z} [out] /in{real(8) array of shape (n,n)}
     固有ベクトル. /w{1}から/w{m}番目の列に固有ベクトルが入っている.
 
-  /srcn{info} [out] /in{integer}
+  /sn{info} [out] /in{integer}
     = 0: 成功
     < 0: /w{info = -i}のとき, /w{i}番目の引数が不正 (よく分からん)
     > 0: 内部エラー
