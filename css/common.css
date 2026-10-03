@@ -1,0 +1,356 @@
+/*==============================================================*/
+/* Common
+/*==============================================================*/
+body {
+  background: url(../img/bg/BG_Hoffman.png);
+}
+
+ul {
+  /*font-family: 'Montserrat', 'Sans-Serif', '游ゴシック';*/
+  font-family: 'Sans-serif', '游ゴシック';
+}
+
+ul.indexBox {
+  background-color: rgba(47,44,38,0.65);
+  color: rgba(245,245,245,1.0);
+  width: 91%;
+  margin: 0.5% auto;
+  padding: 2% 2% 2% 3%;
+}
+
+ul.contentBox {
+  background-color: rgba(47,44,38,0.65);
+  color: rgba(245,245,245,1.0);
+  width: 92%;
+  margin: 0.5% auto;
+  padding: 2%;
+}
+
+div a {
+  color: rgba(245,245,245,1.0);
+  text-decoration: none;
+}
+div a:hover {
+  text-decoration: underline;
+}
+a.colored {
+  color: rgba(200,200,255,1.0);
+}
+a.underlined {
+  text-decoration: underline;
+}
+
+div.title {
+  font-size: 200%;
+  font-weight: bold;
+  line-height: 100%;
+}
+
+div.route {
+  font-size: 125%;
+  line-height: 100%;
+}
+
+div.index {
+  padding: 8px;
+  font-size: 150%;
+  font-weight: bold;
+  /*font-family: 'consolas', '游ゴシック';*/
+  line-height: 120%;
+  border-bottom: solid 2px whitesmoke;
+}
+
+table.std {
+  margin-top: 10px;
+  margin-bottom: -20px;
+  margin-left: 1em;
+}
+table.std th, td {
+  padding: 0 0.5em;
+}
+/*============================================================*/
+/* Index page specific
+/*============================================================*/
+div.parent-contents {
+  line-height: 100%;
+  font-size: 140%;
+  color: rgba(200,200,200,1.0);
+  white-space: pre-wrap;
+  padding-bottom: 30px;
+}
+
+span.fs {
+  font-size: 75%;
+  color: rgba(255,255,255,1.0);
+  vertical-align: top;
+}
+/*============================================================*/
+/* Content page specific
+/*============================================================*/
+div.lastUpdate {
+  font-size: 100%;
+  line-height: 80%;
+  white-space: pre-wrap;
+  margin-bottom: 10px;
+  text-align: right;
+}
+
+div.contents {
+  font-size: 100%;
+  line-height: 140%;
+  white-space: pre-wrap;
+  padding-bottom: 25px;
+  padding-left: 8px;
+  padding-right: 8px;
+}
+
+div.ref {
+  font-size: 100%;
+  line-height: 140%;
+  white-space: pre-wrap;
+  padding-left: 15px;
+  padding-bottom: 5px;
+}
+/*============================================================*/
+/* Inline components
+/*============================================================*/
+span.index1 {
+  font-size: 140%;
+  font-weight: bold;
+  line-height: 200%;
+}
+
+span.index2 {
+  font-size: 125%;
+  font-weight: bold;
+  line-height: 160%;
+}
+
+span.index3 {
+  font-size: 125%;
+  font-weight: normal;
+  line-height: 135%;
+}
+
+span.word {
+  margin-left: 3px;
+  margin-right: 3px;
+}
+span.word-l {
+  margin-left: 3px;
+}
+span.word-r {
+  margin-right: 3px;
+}
+
+span.var {
+  /*background-color: rgba(47,44,38,0.40);*/
+  /*background-color: rgba(220,220,220);*/
+  color: rgba(220,180,180);
+  /*font-family: 'Fira Mono', 'consolas', '游ゴシック';*/
+  font-family: 'Lucida console', 'Sans serif', '游ゴシック';
+  padding: 0px 2px;
+  margin-left: 3px;
+  margin-right: 3px;
+}
+span.var-n {
+  background-color: rgba(220,220,220);
+  color: rgba(220,12,12);
+  font-family: 'Lucida console', 'Sans serif', '游ゴシック';
+  padding: 0px 2px;
+  margin-left: 0px;
+  margin-right: 0px;
+}
+span.var-l {
+  background-color: rgba(220,220,220);
+  color: rgba(220,12,12);
+  font-family: 'Lucida console', 'Sans serif', '游ゴシック';
+  padding: 0px 2px;
+  margin-left: 1px;
+}
+span.var-r {
+  background-color: rgba(220,220,220);
+  color: rgba(220,12,12);
+  font-family: 'Lucida console', 'Sans serif', '游ゴシック';
+  padding: 0px 2px;
+  margin-right: 1px;
+}
+
+span.src {
+  font-family: 'Fira Mono', 'consolas', '游ゴシック';
+  padding: 0px 2px;
+  margin-left: 3px;
+  margin-right: 3px;
+}
+span.src-n {
+  font-family: 'Fira Mono', 'consolas', '游ゴシック';
+  padding: 0px 2px;
+  margin-left: 0px;
+  margin-right: 0px;
+}
+span.src-l {
+  font-family: 'Fira Mono', 'consolas', '游ゴシック';
+  padding: 0px 2px;
+  margin-left: 1px;
+}
+span.src-r {
+  font-family: 'Fira Mono', 'consolas', '游ゴシック';
+  padding: 0px 2px;
+  margin-right: 1px;
+}
+
+
+span.it {
+  font-style: italic;
+  margin-left: 3px;
+  margin-right: 3px;
+}
+span.it-l {
+  font-style: italic;
+  margin-left: 3px;
+}
+span.it-r {
+  font-style: italic;
+  margin-right: 3px;
+}
+span.it-n {
+  font-style: italic;
+}
+
+span.bld {
+  font-weight: 600;
+  margin-left: 3px;
+  margin-right: 3px;
+}
+span.bld-l {
+  font-weight: 600;
+  margin-left: 3px;
+}
+span.bld-r {
+  font-weight: 600;
+  margin-right: 3px;
+}
+span.bld-n {
+  font-weight: 600;
+}
+
+span.padinline1 { padding-inline: 0.5em 0; }
+span.padinline2 { padding-inline: 1.0em 0; }
+span.padinline3 { padding-inline: 1.5em 0; }
+span.padinline4 { padding-inline: 2.0em 0; }
+span.padinline5 { padding-inline: 2.5em 0; }
+span.padinline6 { padding-inline: 3.0em 0; }
+span.padinline7 { padding-inline: 3.5em 0; }
+span.padinline8 { padding-inline: 4.0em 0; }
+
+
+span.img-title {
+  font-size: 100%;
+  font-weight: bold;
+  line-height: 200%;
+}
+
+span.img-description {
+  display: block;
+  font-size: 100%;
+  font-weight: normal;
+  line-height: 120%;
+  margin-bottom: -12px;
+}
+
+span.img-caption {
+  display: block;
+  font-size: 100%;
+  font-weight: normal;
+  line-height: 120%;
+  margin-bottom: -12px;
+}
+
+span.cancelled {
+  text-decoration: line-through;
+}
+
+span.c-skyblue     {color: skyblue}
+span.c-dodgerblue  {color: dodgerblue}
+span.c-lightskyblue{color: lightskyblue}
+/*============================================================*/
+/* iframe
+/*============================================================*/
+iframe {
+  width: 100%;
+}
+iframe.autoHeight {
+  margin-top: 10px;
+}
+/*============================================================*/
+/* img
+/*============================================================*/
+img {
+}
+img.std {
+  width: 50%;
+}
+img.thumbnail {
+  margin-left: 1%;
+}
+img.w24 {
+  width: 24%;
+}
+img.w50 {
+  width: 50%;
+}
+img.w100 {
+  width: 100%;
+  max-width: 96%;
+}
+img.doc {
+  width: 100%;
+  max-width: 920px;
+}
+img.math25 {
+  background-color: white;
+  padding: 10px;
+  width: 25%;
+}
+img.math50 {
+  background-color: white;
+  padding: 10px;
+  width: 50%;
+}
+img.math100 {
+  background-color: white;
+  padding: 10px;
+  max-width: 96%;
+  width: 100%;
+}
+/*============================================================*/
+/* MathJax */
+/*============================================================*/
+.mjx {
+  overflow-x: auto;
+  max-width: 100%;
+  margin: 0.5em 0;
+  padding: 0em 0;
+}
+/*============================================================*/
+/* Code */
+/*============================================================*/
+pre {
+  white-space: pre;
+  overflow-x: auto;
+  overflow-y: hidden;
+  font-family: 'Fira Mono', 'consolas', 'Noto Sans JP', '游ゴシック', sans-serif;
+  font-weight: normal;
+  color: #444444;
+  background-color: #eeeeee;
+  padding: 0.8em;
+  margin: 0.3em 0 0 0;
+}
+/*============================================================*/
+/*                                                            
+/*============================================================*/
+@media screen and (max-width: 800px) {
+  ul {
+    width: 100%
+  }
+}

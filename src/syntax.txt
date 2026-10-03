@@ -1,0 +1,9 @@
+#===============================================================
+Syntax of table
+#===============================================================
+
+## table -head -format=2 -margin=0,1em,0
+## width 1 3 4 2
+## align center left left center
+a bb c d
+## table/

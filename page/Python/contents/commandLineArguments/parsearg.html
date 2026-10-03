@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>parsearg</title>
+  <meta name="viewport" content="width=device-width">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Sheet" content="text/css">
+  <link rel="icon" href="https://akiratakeshima.github.io/img/icon/favicon_03-5.ico" />
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/hi/styles/obsidian.css" media="all">
+  <script type="text/javascript" src="https://akiratakeshima.github.io/js/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+  <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+
+<body>
+
+  <!-- Title -->
+  <ul class='indexBox'>
+    <div class='title'>
+      parsearg
+    </div>
+  </ul>
+
+  <!-- Route -->
+  <ul class='indexBox'>
+    <div class='route'>
+      <u><a href="https://akiratakeshima.github.io/index.html">Top</a></u>
+      &gt; <u><a href="https://akiratakeshima.github.io/page/Python/index.html">Python</a></u>
+ &gt; Command line arguments
+    </div>
+  </ul>
+
+<!-- Contents -->
+<ul class='contentBox'>
+<div class='index'>
+
+</div>
+<div class='contents'>
+<pre><code class="language-python">import argparse
+
+parser = argparse.ArgumentParser(description='This message can be omitted.')
+
+parser.add_argument('positional1', type=str, help='help')
+parser.add_argument('--optional1')
+parser.add_argument('-o2', '--optional2', type=int, choices=(0,1,2))
+parser.add_argument('-o3', '--optional3', type=float, required=True)
+parser.add_argument('--flag', action='store_true')
+
+args = parser.parse_args()
+
+print('positional1='+args.positional1)
+print('optional1='+args.optional1)
+print('optional2='+args.optional2)
+print('optional3='+args.optional3)
+print('flag='+args.flag)
+</code></pre>
+</div>
+</ul>
+
+<!-- References -->
+<ul class='contentBox'>
+<div class='index'>References</div>
+<div class='ref'>
+ArgumentParserの使い方を簡単にまとめた #Python - Qiita
+  + <a href="https://qiita.com/kzkadc/items/e4fc7bc9c003de1eb6d0">https://qiita.com/kzkadc/items/e4fc7bc9c003de1eb6d0</a>
+</div>
+</ul>
+</body>
+</html>
+
