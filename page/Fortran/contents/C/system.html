@@ -88,7 +88,7 @@
 </code></pre>
   <span class='var'>fp = popen("tput cols", "r")</span>
 でシステムコマンド<span class='var'>tput cols</span>を実行し, それを読み込む.
-  実行できなかった場合はステータス<span class='var'>*stat</span>に/v{1}を入れて返す.
+  実行できなかった場合はステータス<span class='var'>*stat</span>に<span class='var'>1</span>を入れて返す.
   実行できた場合はその結果を文字配列<span class='var'>str</span>に格納し, さらにその長さを取得して返す.
 
   次にこれを受け取って幅を数字にして返す<span class='word'>Fortran</span>サブルーチン:
