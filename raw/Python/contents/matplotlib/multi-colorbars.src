@@ -1,0 +1,126 @@
+#===============================================================
+#
+#===============================================================
+## index
+基本的な実装例
+## index/
+## contents
+## src python
+import numpy as np
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+
+# Make data for heatmap
+nx, ny = 100, 100
+x = np.cos(np.linspace(0, np.pi*8, nx))
+y = np.sin(np.linspace(0, np.pi*8, ny))
+xx, yy = np.meshgrid(x, y)
+data = xx * yy
+
+# Make data for line
+lines = []
+nLine = 5
+for iLine in range(5):
+    x = np.linspace(0, nx-1, 1000)
+    y = np.sin(x) + ny*(iLine+0.5)/nLine
+    v = iLine
+    lines.append((x, y, v))
+
+# Prepare ScalarMappable and colormap for line
+sm_line = mpl.cm.ScalarMappable(norm=norm_line, cmap=cmap_line)
+sm_line.set_array([])
+cmap_line = plt.cm.coolwarm
+norm_line = mpl.colors.Normalize(vmin=0, vmax=nLine-1)
+
+# Plot
+fig, ax = plt.subplots()
+
+im_heat = ax.imshow(data, cmap=plt.cm.viridis, interpolation='nearest')
+
+for (x, y, v) in lines:
+    ax.plot(x, y, color=cmap_line(norm_line(v)))
+
+# Colorbar of line
+cbar_line = fig.colorbar(
+    sm_line, ax=ax, aspect=40, pad=0.08, label='Line'
+)
+
+# Colorbar of heatmap
+cbar_heat = fig.colorbar(
+    im_heat, ax=ax, aspect=40, pad=0.04, label='Heatmap'
+)
+
+plt.show()
+## src/
+
+## img
+url="${img}/auto_01.png"
+## img/
+
+　ポイントは
+　・/w{Line plot}のカラーバーの描画には/s{ScalarMappable}を使う
+
+　注意点は以下の/w{2}点。
+
+　1. カラーバーは/b{後から描いたもの}が図の近くに配置される
+　　順番を入れ替えるには描画順を変えるか、カラーバー用の軸を別途定義する（後述）。
+　　/s{pad}の値を負の値にするなどして無理矢理変えることも可能ではあるが、調整が面倒でありスマートな方法ではない。
+
+　2. /s{pad}の基準は、最も図に近いカラーバーの場合は図本体、それ以外は自分よりひとつ内側（図本体に近い側）のカラーバーである
+　　この例で言うと、/s{cbar_heat}は図本体から/w{0.04}, /s{cbar_line}は/s{cbar_heat}から/w{0.08}の距離に配置される。もっと細かい話をすると、/s{cbar_line}が基準としているのは/s{cbar_heat}の軸ではなく、目盛ラベル (/w{0.00}とか/w{-0.75}とか) の右側となっているようである（推察）。だから例えば/s{cbar_line}で/s{pad=0}とすると下図のようになる。
+
+## img
+url="${img}/auto_02.png"
+## img/
+## contents/
+#===============================================================
+#
+#===============================================================
+## index
+カラーバーの軸を明示的に定義する
+## index/
+## contents
+　データの作成と/w{line plot}用のカラーマップの作成までは共通。
+
+　/s{fig.add_axes([left, bottom, width, height])}でカラーバーの軸をメインの図と別に定義する。
+　メインの図とカラーバーの幅や高さ、/w{2}つのカラーバーの太さなどを合わせるために、先に/s{figsize}, /s{left}, /s{cbar_hwdith}など諸々の定数を設定している。もちろん各手続きで直接数字を入れてしまっても良い。
+
+　なお/s{imshow}だとメインの図の軸の長さが自動的に調整されてしまって分かりづらいので、ここでは/s{pcolormesh}でヒートマップを描く。
+
+## src python
+figsize = (9, 6)
+left, width = 0.1, 0.7
+bottom, height = 0.2, 0.7
+cbar_hwidth, cbar_vwidth = 0.02, 0.02*figsize[0]/figsize[1]
+cbar_hpad, cbar_vpad = 0.05, 0.08
+
+fig, ax = plt.subplots(
+    figsize=(9,6),
+    gridspec_kw=dict(left=left, right=left+width, bottom=bottom, top=bottom+height)
+)
+
+# add_axes((left, bottom, width, height))
+cax_heat = fig.add_axes((left+width+cbar_hpad, bottom, cbar_hwidth, height))
+cax_line = fig.add_axes((left, bottom-cbar_vpad-cbar_vwidth, width, cbar_vwidth))
+
+im_heat = ax.pcolormesh(
+    np.linspace(0, nx-1, nx),
+    np.linspace(0, ny-1, ny),
+    data,
+    cmap=plt.cm.viridis,
+)
+
+for (x, y, v) in lines:
+    ax.plot(x, y, color=cmap_line(norm_line(v)))
+
+cbar_heat = fig.colorbar(im_heat, cax=cax_heat, label='Heatmap')
+cbar_line = fig.colorbar(sm_line, cax=cax_line, orientation='horizontal', label='Line')
+
+plt.show()
+## src/
+
+## img
+url="${img}/add_axes_01.png"
+## img/
+## contents/
+

@@ -1,12 +1,6 @@
-I/O | IO
+入出力 | IO
   ターミナル | terminal
     ターミナル制御 | terminalControl.src
-
-C | C
-  コンパイルリンク | compilelink.src
-  配列の受け渡し | array.src
-  システムコマンドの結果を受け取る | system.src
-
 
 手続き | procedure
   組み込み手続き | built-in-procedure
@@ -14,6 +8,12 @@ C | C
   純粋手続き | pure-procedure.src
   演算子のオーバーロード | overload-operator.src
 
-LAPACK | LAPACK
+線形代数ライブラリ LAPACK | LAPACK
   サンプル | sample
     実対称行列の固有値問題 | eig_sym_RRR.src
+
+C | C
+  コンパイルリンク | compilelink.src
+  配列の受け渡し | array.src
+  システムコマンドの結果を受け取る | system.src
+
