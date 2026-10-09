@@ -1,0 +1,152 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>複数のカラーバー</title>
+  <meta name="viewport" content="width=device-width">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Sheet" content="text/css">
+  <link rel="icon" href="https://akiratakeshima.github.io/img/icon/favicon_03-5.ico" />
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/fortran.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/python.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/c.css" media="all">
+  <script type="text/javascript" src="{const.url}/js/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+  <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+
+<body>
+
+  <!-- Title -->
+  <ul class='indexBox'>
+    <div class='title'>
+      複数のカラーバー
+    </div>
+  </ul>
+
+  <!-- Route -->
+  <ul class='indexBox'>
+    <div class='route'>
+      <u><a href="https://akiratakeshima.github.io/index.html">Top</a></u>
+      &gt; <u><a href="https://akiratakeshima.github.io/page/Python/index.html">Python</a></u>
+ &gt; 作図 (Matplotlib)
+    </div>
+  </ul>
+
+<!-- Contents -->
+<ul class='contentBox'>
+<div class='index'>
+基本的な実装例
+</div>
+<div class='contents'>
+<pre><code class="language-python"><span class="pythonInclude">import</span> numpy <span class="pythonStatement">as</span> np
+<span class="pythonInclude">import</span> matplotlib.pyplot <span class="pythonStatement">as</span> plt
+<span class="pythonInclude">import</span> matplotlib <span class="pythonStatement">as</span> mpl
+
+<span class="pythonComment"># Make data for heatmap</span>
+nx, ny = <span class="pythonNumber">100</span>, <span class="pythonNumber">100</span>
+x = np.cos(np.linspace(<span class="pythonNumber">0</span>, np.pi*<span class="pythonNumber">8</span>, nx))
+y = np.sin(np.linspace(<span class="pythonNumber">0</span>, np.pi*<span class="pythonNumber">8</span>, ny))
+xx, yy = np.meshgrid(x, y)
+data = xx * yy
+
+<span class="pythonComment"># Make data for line</span>
+lines = []
+nLine = <span class="pythonNumber">5</span>
+<span class="pythonRepeat">for</span> iLine <span class="pythonOperator">in</span> <span class="pythonBuiltin">range</span>(<span class="pythonNumber">5</span>):
+    x = np.linspace(<span class="pythonNumber">0</span>, nx-<span class="pythonNumber">1</span>, <span class="pythonNumber">1000</span>)
+    y = np.sin(x) + ny*(iLine+<span class="pythonNumber">0.5</span>)/nLine
+    v = iLine
+    lines.append((x, y, v))
+
+<span class="pythonComment"># Prepare ScalarMappable and colormap for line</span>
+sm_line = mpl.cm.ScalarMappable(norm=norm_line, cmap=cmap_line)
+sm_line.set_array([])
+cmap_line = plt.cm.coolwarm
+norm_line = mpl.colors.Normalize(vmin=<span class="pythonNumber">0</span>, vmax=nLine-<span class="pythonNumber">1</span>)
+
+<span class="pythonComment"># Plot</span>
+fig, ax = plt.subplots()
+
+im_heat = ax.imshow(data, cmap=plt.cm.viridis, interpolation=<span class="pythonString">'</span><span class="pythonString">nearest</span><span class="pythonString">'</span>)
+
+<span class="pythonRepeat">for</span> (x, y, v) <span class="pythonOperator">in</span> lines:
+    ax.plot(x, y, color=cmap_line(norm_line(v)))
+
+<span class="pythonComment"># Colorbar of line</span>
+cbar_line = fig.colorbar(
+    sm_line, ax=ax, aspect=<span class="pythonNumber">40</span>, pad=<span class="pythonNumber">0.08</span>, label=<span class="pythonString">'</span><span class="pythonString">Line</span><span class="pythonString">'</span>
+)
+
+<span class="pythonComment"># Colorbar of heatmap</span>
+cbar_heat = fig.colorbar(
+    im_heat, ax=ax, aspect=<span class="pythonNumber">40</span>, pad=<span class="pythonNumber">0.04</span>, label=<span class="pythonString">'</span><span class="pythonString">Heatmap</span><span class="pythonString">'</span>
+)
+
+plt.show()
+</code></pre>
+<a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/multi-colorbars/auto_01.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/multi-colorbars/auto_01.png"></a>
+
+　ポイントは
+　・<span class='word'>Line plot</span>のカラーバーの描画には<span class='src'>ScalarMappable</span>を使う
+
+　注意点は以下の<span class='word'>2</span>点．
+
+　1. カラーバーは<span class='bld'>後から描いたもの</span>が図の近くに配置される
+　　順番を入れ替えるには描画順を変えるか，カラーバー用の軸を別途定義する（後述）．
+　　<span class='src'>pad</span>の値を負の値にするなどして無理矢理変えることも可能ではあるが，調整が面倒でありスマートな方法ではない．
+
+　2. <span class='src'>pad</span>の基準は，最も図に近いカラーバーの場合は図本体，それ以外は自分よりひとつ内側（図本体に近い側）のカラーバーである
+　　この例で言うと，<span class='src'>cbar_heat</span>は図本体から<span class='word'>0.04</span>, <span class='src'>cbar_line</span>は<span class='src'>cbar_heat</span>から<span class='word'>0.08</span>の距離に配置される．もっと細かい話をすると，<span class='src'>cbar_line</span>が基準としているのは<span class='src'>cbar_heat</span>の軸ではなく，目盛ラベル (<span class='word'>0.00</span>とか<span class='word'>-0.75</span>とか) の右側となっているようである（推察）．だから例えば<span class='src'>cbar_line</span>で<span class='src'>pad=0</span>とすると下図のようになる．
+
+<a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/multi-colorbars/auto_02.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/multi-colorbars/auto_02.png"></a>
+</div>
+<div class='index'>
+カラーバーの軸を明示的に定義する
+</div>
+<div class='contents'>
+　データの作成と<span class='word'>line plot</span>用のカラーマップの作成までは共通．
+
+　<span class='src'>fig.add_axes([left, bottom, width, height])</span>でカラーバーの軸をメインの図と別に定義する．
+　メインの図とカラーバーの幅や高さ，<span class='word'>2</span>つのカラーバーの太さなどを合わせるために，先に<span class='src'>figsize</span>, <span class='src'>left</span>, <span class='src'>cbar_hwdith</span>など諸々の定数を設定している．もちろん各手続きで直接数字を入れてしまっても良い．
+
+　なお<span class='src'>imshow</span>だとメインの図の軸の長さが自動的に調整されてしまって分かりづらいので，ここでは<span class='src'>pcolormesh</span>でヒートマップを描く．
+
+<pre><code class="language-python">figsize = (<span class="pythonNumber">9</span>, <span class="pythonNumber">6</span>)
+left, width = <span class="pythonNumber">0.1</span>, <span class="pythonNumber">0.7</span>
+bottom, height = <span class="pythonNumber">0.2</span>, <span class="pythonNumber">0.7</span>
+cbar_hwidth, cbar_vwidth = <span class="pythonNumber">0.02</span>, <span class="pythonNumber">0.02</span>*figsize[<span class="pythonNumber">0</span>]/figsize[<span class="pythonNumber">1</span>]
+cbar_hpad, cbar_vpad = <span class="pythonNumber">0.05</span>, <span class="pythonNumber">0.08</span>
+
+fig, ax = plt.subplots(
+    figsize=(<span class="pythonNumber">9</span>,<span class="pythonNumber">6</span>),
+    gridspec_kw=<span class="pythonBuiltin">dict</span>(left=left, right=left+width, bottom=bottom, top=bottom+height)
+)
+
+<span class="pythonComment"># add_axes((left, bottom, width, height))</span>
+cax_heat = fig.add_axes((left+width+cbar_hpad, bottom, cbar_hwidth, height))
+cax_line = fig.add_axes((left, bottom-cbar_vpad-cbar_vwidth, width, cbar_vwidth))
+
+im_heat = ax.pcolormesh(
+    np.linspace(<span class="pythonNumber">0</span>, nx-<span class="pythonNumber">1</span>, nx),
+    np.linspace(<span class="pythonNumber">0</span>, ny-<span class="pythonNumber">1</span>, ny),
+    data,
+    cmap=plt.cm.viridis,
+)
+
+<span class="pythonRepeat">for</span> (x, y, v) <span class="pythonOperator">in</span> lines:
+    ax.plot(x, y, color=cmap_line(norm_line(v)))
+
+cbar_heat = fig.colorbar(im_heat, cax=cax_heat, label=<span class="pythonString">'</span><span class="pythonString">Heatmap</span><span class="pythonString">'</span>)
+cbar_line = fig.colorbar(sm_line, cax=cax_line, orientation=<span class="pythonString">'</span><span class="pythonString">horizontal</span><span class="pythonString">'</span>, label=<span class="pythonString">'</span><span class="pythonString">Line</span><span class="pythonString">'</span>)
+
+plt.show()
+</code></pre>
+<a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/multi-colorbars/add_axes_01.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/multi-colorbars/add_axes_01.png"></a>
+</div>
+</ul>
+</body>
+</html>
+

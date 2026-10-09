@@ -1,7 +1,7 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>複数の図 (matplotlib.pyplot.subplots)</title>
+  <title>複数のパネル</title>
   <meta name="viewport" content="width=device-width">
   <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
   <meta http-equiv="Content-Style-Sheet" content="text/css">
@@ -22,7 +22,7 @@
   <!-- Title -->
   <ul class='indexBox'>
     <div class='title'>
-      複数の図 (matplotlib.pyplot.subplots)
+      複数のパネル
     </div>
   </ul>
 
@@ -38,7 +38,7 @@
 <!-- Contents -->
 <ul class='contentBox'>
 <div class='index'>
-引数と戻り値
+matplotlib.pyplot.subplots
 </div>
 <div class='contents'>
 公式ドキュメント:
@@ -91,13 +91,13 @@ y = np.sin(x**<span class="pythonNumber">2</span>)
 ax1.plot(x, y)
 ax2.scatter(x, y)
 </code></pre>
-<a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/subplots/projection_01.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/subplots/projection_01.png"></a>
+<a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/multi-panels/projection_01.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/multi-panels/projection_01.png"></a>
 
 <pre><code class="language-python">fig, ax = plt.subplots(<span class="pythonNumber">1</span>, <span class="pythonNumber">2</span>, subplot_kw=<span class="pythonBuiltin">dict</span>(projection=ccrs.Robinson()))
 ax[<span class="pythonNumber">0</span>].coastlines(linewidth=<span class="pythonNumber">0.7</span>)
 ax[<span class="pythonNumber">1</span>].coastlines(linestyle=<span class="pythonString">'</span><span class="pythonString">dashed</span><span class="pythonString">'</span>)
 </code></pre>
-<a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/subplots/projection_02.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/subplots/projection_02.png"></a>
+<a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/multi-panels/projection_02.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/multi-panels/projection_02.png"></a>
 
 <span class='index1'>レイアウトを調整する</span>
 　<span class='word'>left, right, bottom, top</span>で<span class='word'>subplots</span>の描画領域に対する相対位置を，<span class='word'>wspace, hspace</span>で各<span class='word'>subplot</span>の間の広さを指定する．
@@ -108,7 +108,7 @@ fig, ax = plt.subplots(<span class="pythonNumber">2</span>, <span class="pythonN
 ax[<span class="pythonNumber">0</span>,<span class="pythonNumber">0</span>].plot(x, y)
 plt.savefig(figname, bbox_inches=<span class="pythonString">'</span><span class="pythonString">tight</span><span class="pythonString">'</span>, pad_inches=<span class="pythonNumber">0.1</span>, dpi=<span class="pythonNumber">100</span>)
 </code></pre>
-<a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/subplots/layout.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/subplots/layout.png"></a>
+<a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/multi-panels/layout.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/multi-panels/layout.png"></a>
 
 <span class='index1'>色を変更する</span>
 　描画領域の色は<span class='word'>plt.figure</span>と同じように<span class='word'>facecolor</span>などで指定する（ここでは<span class='word'>dict</span>にして与えているが，直接与えても良い）．
@@ -123,7 +123,7 @@ ax4.set_facecolor(<span class="pythonString">'</span><span class="pythonString">
 ax[<span class="pythonNumber">0</span>,<span class="pythonNumber">1</span>].scatter(x, y)
 plt.savefig(figname, bbox_inches=<span class="pythonString">'</span><span class="pythonString">tight</span><span class="pythonString">'</span>, pad_inches=<span class="pythonNumber">0.1</span>, dpi=<span class="pythonNumber">100</span>)
 </code></pre>
-<a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/subplots/colors.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/subplots/colors.png"></a>
+<a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/multi-panels/colors.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/multi-panels/colors.png"></a>
 </div>
 </ul>
 

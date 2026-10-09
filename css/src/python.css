@@ -3,3 +3,6 @@
 .pythonNumber { color: #d75f00; }
 .pythonInclude { color: #d70000; }
 .pythonStatement { color: #d70087; }
+.pythonOperator { color: #8700af; font-weight: bold; }
+.pythonRepeat { color: #8700af; font-weight: bold; }
+.pythonComment { color: #878787; }
