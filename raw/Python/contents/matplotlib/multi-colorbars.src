@@ -95,7 +95,7 @@ cbar_hwidth, cbar_vwidth = 0.02, 0.02*figsize[0]/figsize[1]
 cbar_hpad, cbar_vpad = 0.05, 0.08
 
 fig, ax = plt.subplots(
-    figsize=(9,6),
+    figsize=figsize,
     gridspec_kw=dict(left=left, right=left+width, bottom=bottom, top=bottom+height)
 )
 
