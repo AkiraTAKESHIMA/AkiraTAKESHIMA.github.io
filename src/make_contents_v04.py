@@ -1970,13 +1970,10 @@ def convert_top():
 
     dir_page_local = 'page_local'
     dir_page = f'page{const.ext_platform}'
-    lines = []
-    for line_local in open(f_local, 'r').readlines():
-        line = line_local.replace(dir_page_local, dir_page)
-    lines.append(line)
 
     fp = open(f, 'w')
-    for line in lines:
+    for line_local in open(f_local, 'r').readlines():
+        line = line_local.replace(dir_page_local, dir_page)
         fp.write(line)
     fp.close()
 #===============================================================
