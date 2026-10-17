@@ -48,13 +48,18 @@ from PIL import Image
 # format_content_Photos_FY
 
 # format_index_body_main
-# format_index_body_main_photos
 # format_index_body_main_photos_tmb
 # format_index
 
 # read_index
 
+# convert_top
+
 # make_all
+
+# prep_vimStyle
+# prep_vimStyle_notfound
+# report_vimStyle_notfound
 #===============================================================
 #
 #===============================================================
@@ -269,9 +274,14 @@ def check_block_begin(iLine, blockName_present, blockName_begin):
 #
 #==============================================================
 def get_image_from_drive(
-    cls, url_drive, fid, extension, dir_img_this, 
-    dirName, toBeUpdated,
-):
+    dir_img_this: str, 
+    figinfo: dict[str: str],
+    dirName: str, 
+    update_page: bool, 
+    update_existing_photos: bool,
+    save_raw_photo: bool
+) -> (str, dict):
+
     proc = sys._getframe().f_code.co_name
 
     def calc_size_thumbnail(width_org, height_org, width_tmb_max, height_tmb_max):
@@ -281,20 +291,18 @@ def get_image_from_drive(
         return width_tmb, height_tmb
 
     # Get url
-    if 'https://drive.google.com/open?id=' in url_drive:
-        url = url_drive.replace('open?id=', 'uc?export=download&id=')
-    elif 'https://drive.google.com/file/d/' in url_drive:
-        url = url_drive.replace('file/d/', 'uc?export=download&id=')\
+    if 'https://drive.google.com/open?id=' in figinfo['url_drive']:
+        figinfo['url'] = figinfo['url_drive'].replace('open?id=', 'uc?export=download&id=')
+    elif 'https://drive.google.com/file/d/' in figinfo['url_drive']:
+        figinfo['url'] = figinfo['url_drive'].replace('file/d/', 'uc?export=download&id=')\
                        .replace('/view?usp=sharing', '')\
                        .replace('/view?usp=drive_link', '')
     else:
-        raise Exception(f'Invalid format of url: {url}')
+        raise Exception(f'Invalid format of url: {figinfo["url"]}')
 
     # Settings
     size_fmt = 600*600
-    width_tmb_max, height_tmb_max = 300, 200
-    extension     = '.' + extension
-    extension_fmt = '.png'
+    width_tmb_max, height_tmb_max = 200, 120
 
     # Make directories
     dir_img_raw = os.path.join(dir_img_this,'raw')
@@ -313,87 +321,90 @@ def get_image_from_drive(
             os.makedirs(dir_img_tmb)
 
     # Set paths
-    if fid is None:
-        if 'https://drive.google.com/open?id=' in url_drive:
-            fid = url.split('id=')[1].strip()
-        elif 'https://drive.google.com/file/d/' in url_drive:
-            fid = url.split('id=')[1]
+    if figinfo['fid'] is None:
+        if 'https://drive.google.com/open?id=' in figinfo['url_drive']:
+            figinfo['fid'] = figinfo['url'].split('id=')[1].strip()
+        elif 'https://drive.google.com/file/d/' in figinfo['url_drive']:
+            figinfo['fid'] = figinfo['url'].split('id=')[1]
 
-    path_raw = os.path.join(dir_img_raw, fid+extension)
-    path_fmt = os.path.join(dir_img_fmt, fid+extension_fmt)
-    path_tmb = os.path.join(dir_img_tmb, fid+extension_fmt)
+    path_raw = f'{dir_img_raw}/{figinfo["fid"]}.{figinfo["ext_drive"]}'
+    path_fmt = f'{dir_img_fmt}/{figinfo["fid"]}.png'
+    path_tmb = f'{dir_img_tmb}/{figinfo["fid"]}.png'
 
-    print(f'[{proc}] {url}')
-    print(f' {""*len(proc)}  -> {path_raw.replace(const.dir_top,"")}')
+    print(f'[{proc}] {figinfo["url"]}')
+    print(f' {""*len(proc)}  -> {path_raw.replace(const.dir_top+"/","")}')
 
 
-    if not toBeUpdated:
-        for nam, path in zip(['raw', 'fmt', 'tmb'], [path_raw, path_fmt, path_tmb]):
+    is_ok = False
+    if not update_page:
+        for nam, path in zip(['fmt', 'tmb'], [path_fmt, path_tmb]):
             if not os.path.isfile(path):
                 raise Exception(
-                    f'{nam} figure does not exist. Path: {path}'
+                    f'{nam} Photo does not exist: {path}'
                 )
-        width_tmb, height_tmb = Image.open(path_raw).size
-        aspect_tmb = float(height_tmb) / width_tmb
-        info_photo = ({kw.path_raw:path_raw,
-                       kw.path_tmb:path_tmb,
-                       kw.aspect_tmb:aspect_tmb})
+        is_ok = True
+    elif not update_existing_photos:
+        if os.path.isfile(path_fmt) and os.path.isfile(path_tmb):
+            print('[{proc}] Photos exist. Nothing to do.')
+            is_ok = True
 
-        line = fmt.img_src.format(cls=cls,
-                                  url=path_raw.replace(const.dir_top, const.url),
-                                  src=path_fmt.replace(const.dir_top, const.url))
+    if is_ok:
+        width_tmb, height_tmb = Image.open(path_tmb).size
+        aspect_tmb = float(height_tmb) / width_tmb
+        info_photo = {
+            kw.path_raw:path_raw,
+            kw.path_tmb:path_tmb,
+            kw.path_fmt:path_fmt,
+            kw.aspect_tmb:aspect_tmb
+        }
+
+        line = fmt.img_src.format(
+            cls=figinfo['cls'],
+            url=path_fmt.replace(const.dir_top, const.url),
+            src=path_fmt.replace(const.dir_top, const.url)
+        )
 
         return line, info_photo
-    
 
     # Download the image
     if os.path.isfile(path_raw):
-        print(f'[{proc}] raw fig. exists.')
+        msg = f'[{proc}] raw fig. exists.'
     else:
         print('f[{proc}] Downloading.')
-        subprocess.call(('wget', '-O', path_raw, url))
-        #subprocess.call(('wget', '-nv', url, '-O', '{}'.format(path_raw)))
+        subprocess.call(('wget', '-O', path_raw, figinfo['url']))
+        #subprocess.call(('wget', '-nv', figinfo['url'], '-O', '{}'.format(path_raw)))
         if not os.path.isfile(path_raw):
-            raise Exception(f'Downloading failed: {path_raw}')
+            raise Exception(f'Downloading failed: {path_raw.replace(const.dir_top+"/","")}')
         elif os.path.getsize(path_raw) == 0:
             os.remove(path_raw)
-            raise Exception(f'Downloaded file is empty: {path_raw}')
+            raise Exception(f'Downloaded file is empty: {path_raw.replace(const.dir_top+"/","")}')
         else:
-            print(f'[{proc}] Successfully downloaded.')
+            msg = f'[{proc}] Successfully downloaded.'
 
     width_raw, height_raw = Image.open(path_raw).size
     size_raw = width_raw * height_raw
+    print(msg + f' size: ({width_raw}, {height_raw})')
 
     # Check if need to resize
+    coef = (float(size_fmt) / size_raw)**0.5
+    width_fmt  = int(Decimal(str(width_raw *coef)).quantize(Decimal('0'), ROUND_HALF_UP))
+    height_fmt = int(Decimal(str(height_raw*coef)).quantize(Decimal('0'), ROUND_HALF_UP))
+
     needToResize = True
     if os.path.isfile(path_fmt):
         width_now, height_now = Image.open(path_fmt).size
         size_now = width_now * height_now
-        if size_now == size_fmt:
-            print(f'[{proc}] fmt fig. exists.')
+        if width_now == width_fmt and height_now == height_fmt:
+            print(f'[{proc}] fmt fig. exists. size: ({width_now}, {height_now})')
             needToResize = False
 
     # Resize
     if needToResize:
-        if size_raw > size_fmt:
-            coef = (float(size_fmt) / size_raw)**0.5
-            width_fmt  = Decimal(str(width_raw *coef)).quantize(Decimal('0'), ROUND_HALF_UP)
-            height_fmt = Decimal(str(height_raw*coef)).quantize(Decimal('0'), ROUND_HALF_UP)
-
-            img = Image.open(path_raw)
-            img.thumbnail((width_fmt,height_fmt), Image.ANTIALIAS)
-            img.save(path_fmt, extension_fmt.replace('.',''))
-            print(f'[{proc}] path_fmt: {path_fmt.replace(const.dir_top,"")}')
-            print(f'[{proc}]   (width, height) raw: ({width_raw}, {height_raw}), '\
-                  f'fmt: ({width_fmt}, {height_fmt})')
-        else:
-            if not os.path.isfile(path_fmt):
-                img = Image.open(path_raw)
-                width_now, height_now = img.size
-                img.save(path_fmt, extension_fmt.replace('.',''))
-                print(f'[{proc}] path_fmt: {path_fmt}')
-                print(f'[{proc}]   (width, height) raw: ({width_raw}, {height_raw}), '\
-                      f'fmt: ({width_now}, {height_now})')
+        img = Image.open(path_raw)
+        img.thumbnail((width_fmt,height_fmt), Image.ANTIALIAS)
+        img.save(path_fmt, 'png')
+        print(f'[{proc}] path_fmt: {path_fmt.replace(const.dir_top+"/","")}')
+        print(f'[{proc}]   size: ({width_fmt}, {height_fmt})')
 
     if dirName == const.category_Photos:
         # Check if need to make thumbnail
@@ -403,9 +414,8 @@ def get_image_from_drive(
             width_tmb_this, height_tmb_this = \
                 calc_size_thumbnail(width_raw, height_raw, width_tmb_max, height_tmb_max)
 
-            if (width_tmb <= width_tmb_this or height_tmb <= height_tmb_this) and\
-                    width_tmb <= width_tmb_max or height_tmb <= height_tmb_max:
-                print(f'[{proc}] tmb fig. exists.')
+            if width_tmb == width_tmb_this and height_tmb == height_tmb_this:
+                print(f'[{proc}] tmb fig. exists. size: ({width_tmb}, {height_tmb})')
                 needToMakeThumbnail = False
 
         # Make thumbnail
@@ -414,23 +424,31 @@ def get_image_from_drive(
             width_tmb, height_tmb = \
                 calc_size_thumbnail(width_raw, height_raw, width_tmb_max, height_tmb_max)
             img_tmb.thumbnail((width_tmb,height_tmb), Image.ANTIALIAS)
-            img_tmb.save(path_tmb, extension_fmt.replace('.',''))
+            img_tmb.save(path_tmb, 'png')
 
-            print(f'[{proc}]  path_tmb: {path_tmb.replace(const.dir_top,"")}')
-            print(f'[{proc}]    (width, height) raw: ({width_raw}, {height_raw}), '\
-                  f'tmb: ({width_tmb}, {height_tmb})')
+            print(f'[{proc}]  path_tmb: {path_tmb.replace(const.dir_top+"/","")}')
+            print(f'[{proc}]    size: ({width_tmb}, {height_tmb})')
 
         aspect_tmb = float(height_tmb) / width_tmb
 
-        info_photo = ({kw.path_raw:path_raw,
-                       kw.path_tmb:path_tmb,
-                       kw.aspect_tmb:aspect_tmb})
+        info_photo = {
+            kw.path_raw:path_raw,
+            kw.path_fmt:path_fmt,
+            kw.path_tmb:path_tmb,
+            kw.aspect_tmb:aspect_tmb
+        }
     else:
         info_photo = None
 
-    line = fmt.img_src.format(cls=cls,
-                              url=path_raw.replace(const.dir_top, const.url),
-                              src=path_fmt.replace(const.dir_top, const.url))
+    line = fmt.img_src.format(
+        cls=figinfo['cls'],
+        url=path_fmt.replace(const.dir_top, const.url),
+        src=path_fmt.replace(const.dir_top, const.url)
+    )
+
+    if not save_raw_photo and os.path.isfile(path_raw):
+        os.remove(path_raw)
+        print(f'[{proc}] removed: {path_raw.replace(const.dir_top+"/","")}')
 
     return line, info_photo
 #===============================================================
@@ -962,8 +980,13 @@ def format_content_table(lines, iLine0, write_head, nLines_format_cell):
 #
 #===============================================================
 def format_content_img(
-    lines_raw: list, dir_img_this: str, dirName: str, toBeUpdated: bool
-) -> None:
+    lines_raw: list, 
+    dir_img_this: str, 
+    dirName: str, 
+    update_page: bool, 
+    update_existing_photos: bool,
+    save_raw_photos: bool
+) -> (list[str], list[dict]):
 
     proc = sys._getframe().f_code.co_name
 
@@ -1014,12 +1037,14 @@ def format_content_img(
         #-------------------------------------------------------
         # Read keys and values
         #-------------------------------------------------------
-        url = None
-        url_drive = None
-        fid = None
-        cls = None
-        ext_drive = None
-        caption = None
+        figinfo = dict(
+          url = None,
+          url_drive = None,
+          fid = None,
+          cls = None,
+          ext_drive = None,
+          caption = None,
+        )
 
         key = None
         is_first = True
@@ -1046,124 +1071,126 @@ def format_content_img(
                             break
 
                 if not found:
-                    print('*** {} ***'.format(proc))
-                    print('Key was not found in line @ {}:'.format(iLine+1))
-                    print('{}'.format(line))
-                    print('Content: {}'.format(content))
-                    quit()
+                    raise Exception(
+                        f'Key was not found in line @ {iLine+1}:\n'\
+                        f'{line}\n'\
+                        f'Content: {content}'
+                     )
 
                 if content.replace(key,'').strip()[0] != '=':
-                    print('*** {} ***'.format(proc))
-                    print('Invalid format of line @ {}:'.format(iLine+1))
-                    print('{}'.format(line))
-                    print('Content: {}'.format(content))
-                    print('Key: {}'.format(key))
-                    quit()
+                    raise Exception(
+                        f'Invalid format of line @ {iLine+1}:\n'
+                        f'{line}\n'\
+                        f'Content: {content}\n'\
+                        f'Key: {key}'
+                    )
 
                 continue
 
             val = content
-            print('[{}] key: {}'.format(proc, key))
+            print(f'[{proc}] key: {key}')
 
             if key == const.img_kw_url:
-                if url is not None or url_drive is not None:
-                    print('*** {} ***'.format(proc))
-                    print(('Key "{}" was found but "url" and "url_drive" were already specified'\
-                           ' @ line {}')\
-                          .format(key, iLine+1))
-                    print('Line: {}'.format(line))
-                    quit()
-                url = val.replace('${img}', url_img_parent)
+                if figinfo['url'] is not None or figinfo['url_drive'] is not None:
+                    raise Exception(
+                        f'Key "{key}" was found but "url" and "url_drive" were already specified'\
+                        f' @ line {iLine+1}.\n'\
+                        f'Line: {line}'
+                    )
+                figinfo['url'] = val.replace('${img}', url_img_parent)
 
             elif key == const.img_kw_drv:
-                if url is not None or url_drive is not None:
-                    print('*** {} ***'.format(proc))
-                    print(('Key "{}" was found but "url" and "url_drive" were already specified'\
-                           ' @ line {}')\
-                          .format(key, iLine+1))
-                    print('Line: {}'.format(line))
-                    quit()
-                url_drive = val
+                if figinfo['url'] is not None or figinfo['url_drive'] is not None:
+                    raise Exception(
+                        f'Key "{key}" was found but "url" and "url_drive" were already specified'\
+                        f' @ line {iLine+1}.\n'\
+                        f'Line: {line}'
+                    )
+                figinfo['url_drive'] = val
 
             elif key == const.img_kw_fid:
-                if fid is not None:
-                    print('*** {} ***'.format(proc))
-                    print('Key "{}" was found but already specified.'.format(key))
-                    print('Line: {}'.format(line))
-                    quit()
-                fid = val
+                if figinfo['fid'] is not None:
+                    raise Exception(
+                      f'Key "{key}" was found but already specified.\n'\
+                      f'Line: {line}'
+                    )
+                figinfo['fid'] = val
 
             elif key == const.img_kw_cls:
-                if cls is not None:
-                    print('*** {} ***'.format(proc))
-                    print('Key "{}" was found but already specified.'.format(key))
-                    print('Line: {}'.format(line))
-                    quit()
-                cls = val
+                if figinfo['cls'] is not None:
+                    raise Exception(
+                        f'Key "{key}" was found but already specified.\n'\
+                        f'Line: {line}'
+                    )
+                figinfo['cls'] = val
 
             elif key == const.img_kw_ext:
-                if ext_drive is not None:
-                    print('*** {} ***'.format(proc))
-                    print('Key "{}" was found but already specified.'.format(key))
-                    print('Line: {}'.format(line))
-                    quit()
-                ext_drive = val
+                if figinfo['ext_drive'] is not None:
+                    raise Exception(
+                        f'Key "{key}" was found but already specified.'\
+                        f'Line: {line}'
+                    )
+                figinfo['ext_drive'] = val
 
-                if ext_drive not in const.img_exts:
-                    print('*** {} ***'.format(proc))
-                    print('Invalid extension of image in drive: {}'.format(ext_drive))
-                    print('Line: {}'.format(line))
-                    quit()
+                if figinfo['ext_drive'] not in const.img_exts:
+                    raise Exception(
+                        f'Invalid extension of image in drive: {figinfo["ext_drive"]}\n'\
+                        f'Line: {line}'
+                    )
 
             elif key == const.img_kw_cpt:
-                caption = val
+                figinfo['caption'] = val
 
             else:
-                print('*** {} ***'.format(proc))
-                print('Invalid key: {}'.format(key))
-                print('Line: {}'.format(line))
-                quit()
+                raise Exception(f'Invalid key: {key}\nLine: {line}')
 
             # Reset.
             key = None
         #-------------------------------------------------------
         # Format lines
         #-------------------------------------------------------
-        if url is None and url_drive is None:
-            print('*** {} ***'.format(proc))
-            print('Neither url or url_drive was not specified:')
-            print(line)
-            quit()
+        if figinfo['url'] is None and figinfo['url_drive'] is None:
+            raise Exception(f'Neither url or url_drive was specified:\n{line}')
 
-        if cls is None:
+        if figinfo['cls'] is None:
             if dirName == const.category_Photos:
-                cls = const.img_cls_mw100
+                figinfo['cls'] = const.img_cls_mw100
             else:
-                cls = const.img_cls_mw50
+                figinfo['cls'] = const.img_cls_mw50
 
-        if url is not None:
-            lines_fmt.append(fmt.img_src.format(cls=cls, url=url, src=url))
+        if figinfo['url'] is not None:
+            lines_fmt.append(fmt.img_src.format(**figinfo))
 
-        elif url_drive is not None:
-            if ext_drive is None:
-                ext_drive = const.img_ext_drive_default
+        elif figinfo['url_drive'] is not None:
+            if figinfo['ext_drive'] is None:
+                figinfo['ext_drive'] = const.img_ext_drive_default
             line_fmt, info_photo = get_image_from_drive(
-                cls, url_drive, fid, ext_drive, dir_img_this,
-                dirName, toBeUpdated,
+                dir_img_this,
+                figinfo, 
+                dirName, 
+                update_page, 
+                update_existing_photos,
+                save_raw_photos
             )
             lines_fmt.append(line_fmt)
             info_photos.append(info_photo)
 
-        if caption is not None:
-            lines_fmt.append(fmt.img_caption.format(\
-                             caption=format_content_inlines(caption,iLine)))
+        if figinfo['caption'] is not None:
+            lines_fmt.append(fmt.img_caption.format(
+                caption=format_content_inlines(figinfo['caption'],iLine)
+            ))
 
     return lines_fmt, info_photos
 #===============================================================
 #
 #===============================================================
 def format_content_body_main(
-    path_raw: str, comp: list, dirName: str, toBeUpdated: bool
+    path_raw: str, 
+    comp: list, 
+    dirName: str, 
+    update_page: bool, 
+    update_existing_photos: bool, 
+    save_raw_photos: bool
 ) -> (list, list):
 
     proc = sys._getframe().f_code.co_name
@@ -1453,8 +1480,11 @@ def format_content_body_main(
                     lines_table = []
 
                 elif blockName == const.blockName_img:
-                    lines_img, info_photos_add \
-                      = format_content_img(lines_img, dir_img_this, dirName, toBeUpdated)
+                    lines_img, info_photos_add = format_content_img(
+                        lines_img, dir_img_this, dirName, 
+                        update_page, 
+                        update_existing_photos, save_raw_photos
+                    )
                     lines_img[0] = s + lines_img[0]
                     lines_fmt += lines_img
                     info_photos.append(info_photos_add)
@@ -1576,13 +1606,25 @@ def format_content_body_main(
 #===============================================================
 #
 #===============================================================
-def format_content(dirName, path_raw, comp, toBeUpdated):
+def format_content(
+    dirName: str, 
+    path_raw: str, 
+    comp: list, 
+    update_page: bool, 
+    update_existing_photos: bool, 
+    save_raw_photos: bool
+) -> (list, list):
+
     lines = []
     lines += format_page_head(comp[kw.title_index])
     lines += format_page_body_tag_begin()
     lines += format_page_body_title(comp[kw.title])
     lines += format_page_body_route(dirName, comp[kw.route])
-    lines_body, info_photos = format_content_body_main(path_raw, comp, dirName, toBeUpdated)
+    lines_body, info_photos = format_content_body_main(
+        path_raw, comp, dirName, 
+        update_page, 
+        update_existing_photos, save_raw_photos
+    )
     lines += lines_body
     lines += format_page_body_tag_end()
 
@@ -1601,7 +1643,7 @@ def format_content_Photos_FY(title, comps):
     lines += format_page_head(comps[0][kw.title])
     lines += format_page_body_tag_begin()
     lines += format_page_body_title(comps[0][kw.title])
-    lines += format_page_body_route(dirName, comps[0][kw.route])
+    lines += format_page_body_route(const.category_Photos, comps[0][kw.route])
 
     lines.append("  <!-- Contents -->")
     lines.append("  <ul class='contentBox'>")
@@ -1721,37 +1763,13 @@ def format_index_body_main(comps: list):
 #===============================================================
 #
 #===============================================================
-def format_index_body_main_photos(comps):
-    proc = sys._getframe().f_code.co_name
-
-    lines_fmt = []
-
-    lines_fmt.append("<!-- Contents -->")
-    lines_fmt.append("<ul class='contentBox'>")
-    lines_fmt.append("<div class='contents'>")
-
-    for comp in comps:
-        if comp[kw.isfile]:
-            lines_fmt.append(fmt.photos_index.format(
-                             url=comp[kw.path_page].replace(const.dir_top,const.url),
-                             title=comp[kw.title_index]))
-            lines_fmt += format_index_body_main_photos_tmb(comp[kw.info_photos])
-            lines_fmt.append('')
-
-    lines_fmt.append("</div>")
-    lines_fmt.append("</ul>")
-
-    return lines_fmt
-#===============================================================
-#
-#===============================================================
 def format_index_body_main_photos_tmb(info_photos_page):
     proc = sys._getframe().f_code.co_name
 
     lines_fmt = []
 
     width_tmb_total = 0.0
-    widths_tmb, paths_img_raw, paths_img_tmb = [], [], []
+    widths_tmb, paths_img_raw, paths_img_fmt, paths_img_tmb = [], [], [], []
 
     for info_photos in info_photos_page:
         for i, info in enumerate(info_photos):
@@ -1761,6 +1779,7 @@ def format_index_body_main_photos_tmb(info_photos_page):
 
             widths_tmb.append(width_tmb)
             paths_img_raw.append(info[kw.path_raw])
+            paths_img_fmt.append(info[kw.path_fmt])
             paths_img_tmb.append(info[kw.path_tmb])
 
             #print('  width: {}, total: {}'.format(width_tmb, width_tmb_total))
@@ -1780,11 +1799,11 @@ def format_index_body_main_photos_tmb(info_photos_page):
                 widths_tmb[-1] = int(const.img_tmb_width_total_ulim - width_tmb_total)
 
                 line_fmt = ''
-                for width_tmb, path_img_raw, path_img_tmb \
-                      in zip(widths_tmb, paths_img_raw, paths_img_tmb):
+                for width_tmb, path_img_fmt, path_img_tmb \
+                      in zip(widths_tmb, paths_img_fmt, paths_img_tmb):
                     line_fmt += fmt.img_tmb.format(
                                 cls='thumbnail',
-                                url=path_img_raw.replace(const.dir_top, const.url),
+                                url=path_img_fmt.replace(const.dir_top, const.url),
                                 src=path_img_tmb.replace(const.dir_top, const.url),
                                 width=width_tmb)
                 lines_fmt.append(line_fmt)
@@ -1794,11 +1813,11 @@ def format_index_body_main_photos_tmb(info_photos_page):
 
     if len(widths_tmb) > 0:
         line_fmt = ''
-        for width_tmb, path_img_raw, path_img_tmb \
-              in zip(widths_tmb, paths_img_raw, paths_img_tmb):
+        for width_tmb, path_img_fmt, path_img_tmb \
+              in zip(widths_tmb, paths_img_fmt, paths_img_tmb):
             line_fmt += fmt.img_tmb.format(
                         cls='thumbnail',
-                        url=path_img_raw.replace(const.dir_top, const.url),
+                        url=path_img_fmt.replace(const.dir_top, const.url),
                         src=path_img_tmb.replace(const.dir_top, const.url),
                         width=int(width_tmb))
         lines_fmt.append(line_fmt)
@@ -1832,36 +1851,6 @@ def format_index(comps: list, dirName: str):
 #===============================================================
 #
 #===============================================================
-def conv_toppage():
-    f_in = 'index.html'
-    f_out = f'index{const.ext_platform}.html'
-    print('----------------------------------------------------------------')
-    print(f'Converting {f_in} to {f_out}')
-
-    wf = open(f_out, 'w')
-    for line in open(f_in, 'r').readlines():
-        is_found = False
-        for dirName in const.dirNames:
-            if f'page/{dirName}/' in line:
-                is_found = True
-                break
-
-        if is_found:
-            line = line.replace(f'page/{dirName}/', f'page{const.ext_platform}/{dirName}/')
-
-        wf.write(line)
-    wf.close()
-#===============================================================
-#
-#===============================================================
-#
-#
-#
-#
-#
-#===============================================================
-#
-#===============================================================
 def read_index(dirName):
     proc = sys._getframe().f_code.co_name
 
@@ -1873,11 +1862,6 @@ def read_index(dirName):
     print(f'[{proc}] Reading {f_contents_list.replace(const.dir_top+"/","")}')
 
     for iLine, line in enumerate(open(f_contents_list,'r').readlines()):
-        print(line.rstrip())
-
-
-    for iLine, line in enumerate(open(f_contents_list,'r').readlines()):
-        print(line.rstrip())
 
         # Skip empty line
         if len(line.strip()) == 0: continue
@@ -1974,7 +1958,36 @@ def read_index(dirName):
 #===============================================================
 #
 #===============================================================
-def make_all(dirName, overwrite):
+def convert_top():
+
+    if const.platform == const.platform_local: 
+        raise Exception('Both input and output are local.')
+        return
+
+    f_local = f'index_local.html'
+    f = f'index{const.ext_platform}.html'
+    print(f'Converting top page: {f_local} -> {f}')
+
+    dir_page_local = 'page_local'
+    dir_page = f'page{const.ext_platform}'
+    lines = []
+    for line_local in open(f_local, 'r').readlines():
+        line = line_local.replace(dir_page_local, dir_page)
+    lines.append(line)
+
+    fp = open(f, 'w')
+    for line in lines:
+        fp.write(line)
+    fp.close()
+#===============================================================
+#
+#===============================================================
+def make_all(
+    dirName: str, 
+    overwrite: bool,
+    update_existing_photos: bool,
+    save_raw_photos: bool,
+) -> None:
     proc = sys._getframe().f_code.co_name
 
     paths = [None] * const.maxPathDepth
@@ -2045,18 +2058,22 @@ def make_all(dirName, overwrite):
                 continue
 
             # Skip if the file is latest version
-            toBeUpdated = True
+            update_page = True
             if not overwrite:
                 if os.path.isfile(path_page_this):
                     if os.stat(path_raw_this).st_mtime < os.stat(path_page_this).st_mtime:
                         if dirName == const.category_Photos:
-                            toBeUpdated = False
+                            update_page = False
                         else:
                             print('File is latest version. Not updated.')
                             continue
 
             # Format lines
-            lines_fmt, info_photos = format_content(dirName, path_raw_this, comp, toBeUpdated)
+            lines_fmt, info_photos = format_content(
+                dirName, path_raw_this, comp, 
+                update_page,
+                update_existing_photos, save_raw_photos
+            )
             comp[kw.info_photos] = info_photos
 
             # Make the directory
@@ -2086,21 +2103,19 @@ def make_all(dirName, overwrite):
         ii_comp = [i for i, comp in enumerate(comps) if comp[kw.depth]==0] + [len(comps)]
         for i0_comp, i1_comp in zip(ii_comp[:-1], ii_comp[1:]):
             comp0 = comps[i0_comp]
-            path_page_this = os.path.join(const.dir_page, 
-                              '{}/{}/{}/{}'.format(
-                                dirName, 
-                                const.dirName_contents, 
-                                comp0[kw.dir_path], 
-                                comp0[kw.file_raw].replace(const.ext_raw,const.ext_html)))
-            #print('dir: {}'.format(path_page_this))
+            path_tmb = \
+                f'{const.dir_page}/{dirName}/{const.dirName_contents}/{comp0[kw.dir_path]}/'\
+                f'{comp0[kw.file_raw].replace(const.ext_raw,const.ext_html)}'
+            print(f'[{proc}] tmb: {path_tmb}')
+            
             title = comp0[kw.title]
             lines_fmt = format_content_Photos_FY(title, comps[i0_comp+1:i1_comp])
 
-            wf = open(path_page_this,'w')
+            wf = open(path_tmb,'w')
             for line in lines_fmt:
                 wf.write(line+'\n')
             wf.close()
-            print(f'[{proc}] Saved {path_page_this.replace(const.dir_top+"/","")}')
+            print(f'[{proc}] Saved {path_tmb.replace(const.dir_top+"/","")}')
     #-----------------------------------------------------------
     # Make index page
     #-----------------------------------------------------------
@@ -2112,11 +2127,6 @@ def make_all(dirName, overwrite):
         wf.write(line+'\n')
     wf.close()
     print(f'Saved {path_index.replace(const.dir_top+"/","")}')
-    #-----------------------------------------------------------
-    # Convert index.html corresponding to the platform
-    #-----------------------------------------------------------
-    if const.platform != const.platform_github:
-        conv_toppage()
 #===============================================================
 #
 #===============================================================
@@ -2141,7 +2151,7 @@ def prep_vimStyle():
             className = line.strip().split()[0][1:]
             style = line[len(className)+1:].strip()
             vimStyle[language][className] = style
-            print(className, style)
+            #print(className, style)
 
     return vimStyle
 #===============================================================
@@ -2277,12 +2287,12 @@ class Const():
     img_cls_mw100 = 'mw100'
     img_ext_drive_default = 'jpg'
     img_exts = ['jpg', 'png', 'PNG']
-    img_kw_url = 'url'
-    img_kw_drv = 'drv'
-    img_kw_fid = 'fid'
-    img_kw_cls = 'cls'
-    img_kw_cpt = 'cpt'
-    img_kw_ext = 'ext'
+    img_kw_url = 'url'  # url
+    img_kw_drv = 'drv'  # drive url
+    img_kw_fid = 'fid'  # local file id
+    img_kw_cls = 'cls'  # class
+    img_kw_cpt = 'cpt'  # caption
+    img_kw_ext = 'ext'  # extension
 
     img_tmb_width_base = 20.0
     img_tmb_width_total_ulim = 98.0
@@ -2301,13 +2311,8 @@ class Const():
         self.platform = conf['platform']
         if self.platform == self.platform_github:
             self.ext_platform = ''
-        elif self.platform == self.platform_local:
-            self.ext_platform = '_local'
         else:
-            raise Exception(
-                f'Invalid input of `conf["platform"]`: {conf["platform"]}\n'
-                f'Select from {self.platforms}.'
-            )
+            self.ext_platform = '_' + self.platform
 
         self.dir_raw = f'{self.dir_top}/raw'
         self.dir_page_base = f'{self.dir_top}/page'
@@ -2328,6 +2333,7 @@ class Keyword():
     route = 'route'
     isfile = 'isfile'
     path_raw = 'path_raw'
+    path_fmt = 'path_fmt'
     path_tmb = 'path_tmb'
     aspect_tmb = 'aspect_tmb'
     path_page = 'path_page'
@@ -2381,16 +2387,17 @@ class Replaced():
 const = Const()
 
 parser = argparse.ArgumentParser()
-parser.add_argument('dirName', type=str, choices=const.dirNames + ['all'])
-parser.add_argument('--conf', default='conf/local.json')
+parser.add_argument('dirName', choices=const.dirNames + ['all', 'top'])
+parser.add_argument('--config', default='conf/local.json')
 parser.add_argument('-w', '--overwrite', action='store_true')
+parser.add_argument('--update-existing-photos', action='store_true')
+parser.add_argument('--save-raw-photos', action='store_true')
 
 args = parser.parse_args()
 
 dirName_ = args.dirName
-overwrite = args.overwrite
 
-conf = json.load(open(args.conf, 'r'))
+conf = json.load(open(args.config, 'r'))
 
 const.load_config(conf)
 
@@ -2403,10 +2410,26 @@ inlines = mklist_inlines()
 vimStyle = prep_vimStyle()
 vimStyle_notfound = prep_vimStyle_notfound()
 
-if dirName_ == 'all':
+if dirName_ is None:
+    pass
+elif dirName_ == 'all':
     for dirName_this in const.dirNames:
-        make_all(dirName_this, overwrite)
+        make_all(
+            dirName_this, 
+            args.overwrite,
+            args.update_existing_photos,
+            args.save_raw_photos
+        )
+elif dirName_ in const.dirNames:
+    make_all(
+        dirName_, 
+        args.overwrite,
+        args.update_existing_photos,
+        args.save_raw_photos
+    )
+elif dirName_ == 'top':
+    convert_top()
 else:
-    make_all(dirName_, overwrite)
+    raise Exception(f'dirName="{dirName_}" Not matched any case.')
 
 report_vimStyle_notfound()

@@ -1,5 +1,5 @@
 body {
-  background: url(img/bg/BG_GraphPaper.png);
+  background: url(../img/bg/BG_GraphPaper.png);
 }
 
 ul{
@@ -19,7 +19,7 @@ div {
 }
 
 .Title {
-  background: url(img/bg/1Y1blpo5E0AnQlWx5zUub468THIjm4SaL.jpg);
+  background: url(../img/bg/1Y1blpo5E0AnQlWx5zUub468THIjm4SaL.jpg);
 }
 
 .Profile {
