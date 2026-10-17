@@ -2,5 +2,6 @@
 
 tmp/
 
-index_local.html
-page_local/
+/index_local.html
+/page_local/
+/page/Photos/
