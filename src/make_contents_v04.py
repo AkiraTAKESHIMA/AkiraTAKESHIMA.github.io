@@ -1460,6 +1460,7 @@ def format_content_body_main(
                 lines_fmt.append(s + '</div>')
                 del blockNames[-1]
                 depth -= 1
+                flag_block_src_end = False
 
             elif blockName in const.blockNames_special:
                 if blockName == const.blockName_lastUpdate:
