@@ -1,0 +1,245 @@
+#===============================================================
+#
+#===============================================================
+## index
+Quick Start
+## index/
+## contents
+　こういう感じで/w{C}の自作関数 doYouDo を呼び出したい。
+## src python
+import hello
+
+hello.doYouDo()
+>>Hello, I am (null).
+
+hello.doYouDo("an researcher")
+>>Hello, I am an researcher.
+## src/
+
+/idx1{/wr{C}の関数}
+/v{what.c}
+## src c
+#include <stdio.h>
+
+void doYouDo(const char* job){
+  printf("Hello, I am %s.\n", job);
+}
+## src/
+
+/idx1{/wr{C}の関数のラッパー}
+/v{whatWrap.c}
+## src c
+#include <Python.h>
+
+extern void doYouDo(const char*);
+
+PyObject* what_doYouDo(PyObject* self, PyObject* args, PyObject* kw){
+  const char* job = NULL;
+  static char* argnames[] = {"job", NULL};
+  if(!PyArg_ParseTupleAndKeywords(args, kw, "|s", argnames, &job))
+    return NULL;
+  doYouDo(job);
+  return Py_BuildValue("");
+}
+
+static PyMethodDef whatmethods[] = {
+  {"doYouDo", (PyCFunction)what_doYouDo, METH_VARARGS | METH_KEYWORDS, ""},
+  {NULL, NULL, 0, NULL},
+};
+
+static struct PyModuleDef hello = {
+  PyModuleDef_HEAD_INIT,
+  "hello",
+  "Python3 C API Module (Sample 1)",
+  -1,
+  whatmethods
+};
+
+PyMODINIT_FUNC PyInit_hello(void){
+  return PyModule_Create(&hello);
+};
+## src/
+
+/idx1{コンパイル}
+## src plaintext
+$ gcc -fPIC -Wall -c -o what.o what.c
+$ gcc -fPIC -Wall -c -o whatWrap.o whatWrap.c -I/usr/include/python3.9
+$ gcc -fPIC -Wall -shared -o hello.so what.o whatWrap.o
+## src/
+
+　これで/w{Python}から呼び出せる/w{C}のモジュール/v{hello}ができた。最初のサンプルコードのようにして関数を呼び出す。
+## contents/
+#===============================================================
+#
+#===============================================================
+## index
+解説
+## index/
+## contents
+#---------------------------------------------------------------
+/idx1{ラッパー}
+#---------------------------------------------------------------
+　/w{Python}から呼び出した際の引数の処理及び戻り値の定義を行う関数を定義する。
+
+## src c
+PyObject* what_doYouDo(PyObject* self, PyObject* args, PyObject* kw){
+  const char* job = NULL;
+  static char* argnames[] = {"job", NULL};
+  if(!PyArg_ParseTupleAndKeywords(args, kw, "|s", argnames, &job))
+    return NULL;
+  doYouDo(job);
+  return Py_BuildValue("");
+}
+## src/
+
+/idx2{/v{what_doYouDo}の引数}
+　/v{self}, /v{args}, /v{kw}はそれぞれ関数自身、引数、キーワード。いずれも/v{PyObjec}型の構造体で参照渡しらしい。
+
+/idx2{PyArg_ParseTupleAndKeywords}
+　この手続きで引数とキーワードを解析する。詳細:
+　　+ /ac{引数の解釈と値の構築 &#8212; Python 3.13.3 ドキュメント -  - c.PyArg_ParseTupleAndKeywords}{https://docs.python.org/ja/3.13/c-api/arg.html#c.PyArg_ParseTupleAndKeywords}
+
+　/wr{3}つ目の引数 (ここでは/v{|s}) は/w{Python}で与えられた引数を/w{C}のどの型に変換するかを指定する。代表的なものとして/v{s}は文字列を指すポインタ、/v{i}は/w{int}型、/v{d}は/w{double float}型など。/v{|}以降はキーワード引数、つまり無くても関数が動作する引数。ここでは位置引数 (必須の引数) が無く/v{job}というキーワード引数のみで、これが文字列と想定しているので/v{|s}となる。型についての詳細:
+　　+ /ac{引数の解釈と値の構築 &#8212; Python 3.13.3 ドキュメント}{https://docs.python.org/ja/3.13/c-api/arg.html}
+
+　/wr{4}つ目の引数 (/v{argnames}) は「The keywords argument is a NULL-terminated array of keyword parameter names...」(ドキュメントより) とのことで、この例のように、キーワードの一覧の後ろに/v{NULL}を加えたものを与える。
+
+　/wr{Python}側で引数の与え方を誤ると、引数の解析に失敗し、/v{PyArg_ParseTupleAndKeywords}が/w{False}を返す。その場合この例では/v{NULL}を返す (/v{return NULL})。
+
+　また引数/v{job}はキーワード引数ということで、/w{Python}から値が与えられない場合未定義の状態になってしまうので、
+## src c
+  const char* job = NULL;
+## src/
+で定義しておく。
+
+　引数の解析に成功すると、いよいよ関数の本体/v{doYouDo}が呼び出される。
+## src c
+  doYouDo(job);
+## src/
+
+　最後に戻り値を/v{Py_BuildValue}で/w{Python}オブジェクトに変換して返す。
+## src c
+  return Py_BuildValue("");
+## src/
+
+　この関数のように戻り値を持たない場合は空の文字列を入れる。
+
+　戻り値がある場合は/v{Py_BuildValue(/i{format}, /i{value1}, /i{value2}, ...)}のような形で、/w{C}の変数/w{value1, value2, ...}を/w{format}に従って/w{Python}オブジェクトに変換したものを返す。/w{format}は先の/w{PyArg_ParseTupleAndKeywords}と同じ(多分)。詳細:
+　　+ /ac{引数の解釈と値の構築 &#8212; Python 3.13.3 ドキュメント - c.Py_BuildValue}{https://docs.python.org/ja/3.13/c-api/arg.html#c.Py_BuildValue}
+
+#---------------------------------------------------------------
+/idx1{モジュールに入れる手続きのリストアップ}
+#---------------------------------------------------------------
+## src c
+static PyMethodDef whatmethods[] = {
+  {"doYouDo", (PyCFunction)what_doYouDo, METH_VARARGS | METH_KEYWORDS, ""},
+  {NULL, NULL, 0, NULL},
+};
+## src/
+
+　括弧 /v{{}} 内の引数は
+　　{手続き名、ラッパーのオブジェクト、引数の与え方、手続きの説明}
+
+　/wr{1}つ目の「手続き名」は/w{C}の関数名と同じである必要は無く、任意に決められるらしい。/w{Python}側から呼び出すときにどういう名前でその手続きを呼び出したいか、ということ。
+
+　/wr{2}つ目は先に定義したラッパー。/v{(PytCFunction)}でキャストする。
+
+　/wr{3}つ目の「引数の与え方」は、この例のようにキーワード引数がある場合はこのように書くが、位置引数のみの場合は/v{METH_VARARGS}だけで良い。引数が無い場合は/w{NULL}で良い？　不明、要確認。
+
+　詳細:
+　　+ /ac{共通のオブジェクト構造体 (common object structure) &#8212; Python 3.13.3 ドキュメント}{https://docs.python.org/ja/3/c-api/structures.html}
+
+　最後の/v{{NULL, NULL, 0, NULL}}というのは何だか分からないが、終端であることを教える的な役割なのだと思う。知らんけど。単に/v{{NULL}}などでも良いらしい。
+
+#---------------------------------------------------------------
+/idx1{モジュールの定義}
+#---------------------------------------------------------------
+　値の細かい説明はあまり重要ではないと思うが、一応書いておく。
+
+## src c
+static struct PyModuleDef hello = {
+  PyModuleDef_HEAD_INIT, // 初期化
+  "hoge", // モジュールの名前
+  "Python3 C API Module (Sample 1)", // 説明
+  -1,  // モジュールの状態
+  whatmethods  // 先に定義した、モジュールに入れる手続き群
+};
+## src/
+
+　/v{PyModuleDef}型のオブジェクトを作成する。
+　必ず/w{PyModuleDef_HEAD_INIT}で初期化する。名前はモジュール名とは独立に、任意に決められる。もちろん説明も。/w{Python}側からはそれぞれ以下のように取得できる。
+
+## src python
+hello.__name__
+>>'hoge'
+
+hello.__doc__
+>>'Python3 C API Module (Sample 1)'
+## src/
+
+　モジュールの状態についてはよく分からないがとりあえず/w{-1}で良さそう。
+
+#---------------------------------------------------------------
+/idx1{モジュールの初期化}
+#---------------------------------------------------------------
+
+　最後に、/w{Python}でモジュールを/w{import}した際に呼び出される初期化関数を定義する。
+　/v{PyModule_Create}に、今作ったモジュールを与える。
+## src c
+PyMODINIT_FUNC PyInit_hello(void){
+  return PyModule_Create(&hello);
+};
+## src/
+
+#---------------------------------------------------------------
+/idx1{コンパイル}
+#---------------------------------------------------------------
+## src plaintext
+$ gcc -fPIC -Wall -c -o what.o what.c
+$ gcc -fPIC -Wall -c -o whatWrap.o whatWrap.c -I/usr/include/python3.9
+$ gcc -fPIC -Wall -shared -o hello.so what.o whatWrap.o
+## src/
+
+　/wr{1}つ目は普通の/w{C}のコンパイル。
+
+　/wr{2}つ目は少し注意。ヘッダファイル/v{Python.h}を/w{include}しているので、そのファイルがあるディレクトリが検索対象に含まれていなければならない。/v{~/.bash_profile}などで予めパスに含まれていない場合は、この例のように/v{-I}オプションでそのディレクトリを追加する。
+
+　/wr{3}つ目のコマンドで共有ライブラリを作成している。
+
+　以上！　思った以上に手順が多くて大変。
+## contents/
+#===============================================================
+#
+#===============================================================
+## index
+補足
+## index/
+## contents
+　下の/w{References}にあるとおり、既に同様の日本語記事は複数あるが、自分でやってみたら動かなかったりよく分からないところがあったりしたので、勉強を兼ねて自分なりにまとめた。
+## contents/
+#===============================================================
+#
+#===============================================================
+## ref
+引数の解釈と値の構築 &#8212; Python 3.13.3 ドキュメント
+https://docs.python.org/ja/3.13/c-api/arg.html
+
+引数の解釈と値の構築 &#8212; Python 3.13.3 ドキュメント - c.PyArg_ParseTupleAndKeywords
+https://docs.python.org/ja/3.13/c-api/arg.html#c.PyArg_ParseTupleAndKeywords
+
+引数の解釈と値の構築 &#8212; Python 3.13.3 ドキュメント - c.Py_BuildValue
+https://docs.python.org/ja/3.13/c-api/arg.html#c.Py_BuildValue
+
+Cで作った関数をpythonで呼ぶ - Qiita
+https://qiita.com/nabion/items/594fb3316583130a636e
+
+Cの自作ライブラリをPythonから呼び出す方法
+https://jitaku.work/it/language/python/python-c/
+
+組み込みエンジニアの戸惑い　PythonからC言語を呼び出してみる①（Python/C APIを使った場合） - KUMICO
+https://www.fsi-embedded.jp/kumico/column/1543/
+
+Ubuntu（WSL）でPython.hが見つからない問題
+https://zenn.dev/bluepost/articles/a824b2905df36f
+
+## ref/

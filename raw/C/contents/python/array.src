@@ -1,0 +1,460 @@
+#===============================================================
+#
+#===============================================================
+## index
+やりたいこと
+## index/
+## contents
+　/w{Python}の/w{numpy}配列を/w{C}の関数に渡したい。今回は参照渡しと値渡しの両方を実装してみる。
+
+　参照渡し…受け取り側で中身をいじると渡した側にも反映される
+　値渡し…受け取り側で中身をいじっても渡した側に反映されない
+
+　値渡しと言っても、参照渡して受け取った配列をコピーするだけなので、やることは参照渡しとあまり変わらない。
+
+#---------------------------------------------------------------
+/idx1{/wr{Python}からの呼び出し例}
+#---------------------------------------------------------------
+　/v{c_module}という/w{C}の関数を扱うモジュールを作成する。
+　　/v{inc_array}: /w{numpy}配列を参照渡しで受け取り、各要素に同じ値を加えて返す。
+　　/v{not_inc_array}: /w{numpy}配列を値渡しのような形で受け取り、それを操作する。
+　なお配列は/w{2}次元、/w{8}バイト浮動小数点数の想定。次元数に関するエラーチェックはここでは入れないが本当はきちんと入れないといけない。
+
+In
+## src python
+import numpy as np
+import c_module
+
+a = np.arange(20.).reshape(4,5)
+c_module.inc_array(a, 1.1)
+print(a)
+## src/
+
+Out
+## src plaintext
+from inc_array
+dimensions: 2, type: 12
+[[ 1.1  2.1  3.1  4.1  5.1]
+ [ 6.1  7.1  8.1  9.1 10.1]
+ [11.1 12.1 13.1 14.1 15.1]
+ [16.1 17.1 18.1 19.1 20.1]]
+## src/
+
+In
+## src python
+a = np.arange(20.).reshape(4,5)
+c_module.not_inc_array(a, 1.1)
+print(a)
+## src/
+
+Out
+## src plaintext
+from not_inc_array
+dimensions: 2, type: 12
+[[ 0.  1.  2.  3.  4.]
+ [ 5.  6.  7.  8.  9.]
+ [10. 11. 12. 13. 14.]
+ [15. 16. 17. 18. 19.]]
+## src/
+
+　このように、/v{inc_array}では元の配列に変更が反映されるが、/v{not_inc_array}では反映されない。
+
+#---------------------------------------------------------------
+/idx1{/wr{C}の関数}
+#---------------------------------------------------------------
+/v{func.c}
+## src c
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <Python.h>
+#include <numpy/arrayobject.h>
+#include <stdio.h>
+
+void inc_array(PyArrayObject*, double);
+void not_inc_array(PyArrayObject*, double);
+double *getptr_to_pyarray_double(PyArrayObject*);
+double *getCarray_from_pymatrix_double(PyArrayObject*);
+
+
+void inc_array(PyArrayObject *arrayin, double inc){
+    double *c;
+    int m, n;
+
+    printf("from inc_array\n");
+    printf("dimensions: %d, type: %d\n", PyArray_NDIM(arrayin), PyArray_TYPE(arrayin));
+    m = PyArray_DIM(arrayin,0);
+    n = PyArray_DIM(arrayin,1);
+
+    c = getptr_to_pyarray_double(arrayin);
+    for (int i=0; i<m*n; i++)
+        c[i] += inc;
+}
+
+
+void not_inc_array(PyArrayObject *arrayin, double inc){
+    double *c;
+    int m, n;
+
+    printf("from not_inc_array\n");
+    printf("dimensions: %d, type: %d\n", PyArray_NDIM(arrayin), PyArray_TYPE(arrayin));
+    m = PyArray_DIM(arrayin,0);
+    n = PyArray_DIM(arrayin,1);
+
+    c = getCarray_from_pymatrix_double(arrayin);
+    for (int i=0; i<m*n; i++)
+        c[i] += inc;
+
+    free(c);
+}
+
+
+double *getptr_to_pyarray_double(PyArrayObject *arrayin){
+    double *c;
+
+    if (PyArray_TYPE(arrayin) != NPY_DOUBLE) {
+        PyErr_SetString(PyExc_TypeError, "Array must be of type float64 (double)");
+        return NULL;
+    }
+
+    c = (double *)PyArray_DATA(arrayin);
+    return c;
+}
+
+
+double *getCarray_from_pymatrix_double(PyArrayObject *arrayin){
+    int n, m;
+    double *cin, *c;
+
+    if (PyArray_TYPE(arrayin) != NPY_DOUBLE) {
+        PyErr_SetString(PyExc_TypeError, "Array must be of type float64 (double)");
+        return NULL;
+    }
+
+    m = PyArray_DIM(arrayin,0);
+    n = PyArray_DIM(arrayin,1);
+
+    cin = getptr_to_pyarray_double(arrayin);
+    c = (double *)malloc(sizeof(double)*n*m);
+    for (int i=0; i<m*n; i++){
+        c[i] = cin[i];
+    }
+    return c;
+}
+## src/
+
+#---------------------------------------------------------------
+/idx1{/w{C}のラッパー}
+#---------------------------------------------------------------
+/v{wrap.c}
+## src c
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <Python.h>
+#include <numpy/arrayobject.h>
+#include <stdio.h>
+
+extern void inc_array(PyArrayObject*, double);
+extern void not_inc_array(PyArrayObject*, double);
+
+
+static PyObject* py_inc_array(PyObject* self, PyObject* args) {
+    PyObject *obj = NULL;
+    double inc = 0.0;
+    if (!PyArg_ParseTuple(args, "Od", &obj, &inc))
+        return NULL;
+
+    PyArrayObject *arr = (PyArrayObject *)PyArray_FROM_OTF(obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    if (arr == NULL)
+        return NULL;
+
+    inc_array(arr, inc);
+    Py_DECREF(arr);
+    Py_RETURN_NONE;
+}
+
+static PyObject* py_not_inc_array(PyObject* self, PyObject* args) {
+    PyObject *obj = NULL;
+    double inc = 0.0;
+    if (!PyArg_ParseTuple(args, "Od", &obj, &inc))
+        return NULL;
+
+    PyArrayObject *arr = (PyArrayObject *)PyArray_FROM_OTF(obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    if (arr == NULL)
+        return NULL;
+
+    not_inc_array(arr, inc);
+    Py_DECREF(arr);
+    Py_RETURN_NONE;
+}
+
+static PyMethodDef MyMethods[] = {
+    {"inc_array", py_inc_array, METH_VARARGS, "Increace the values of numpy array"},
+    {"not_inc_array", py_not_inc_array, METH_VARARGS, "Not increase the values of numpy array"},
+    {NULL, NULL, 0, NULL}
+};
+
+static struct PyModuleDef c_module = {
+    PyModuleDef_HEAD_INIT,
+    "c_module",   // name of module
+    NULL,         // module documentation
+    -1,           // size of per-interpreter state of the module
+    MyMethods
+};
+
+PyMODINIT_FUNC PyInit_c_module(void) {
+    import_array();  // ← NumPy配列を扱うには必須
+    return PyModule_Create(&c_module);
+}
+## src/
+
+#---------------------------------------------------------------
+/idx1{コンパイル}
+#---------------------------------------------------------------
+## src plaintext
+$ gcc -fPIC -Wall -c func.c -I/usr/include/python3.9
+$ gcc -fPIC -Wall -c wrap.c -I/usr/include/python3.9
+$ gcc -fPIC -Wall -shared -o c_module.so *.o
+## src/
+## contents/
+#===============================================================
+#
+#===============================================================
+## index
+解説: ヘッダー
+## index/
+## contents
+#---------------------------------------------------------------
+/idx1{/wr{Python}オブジェクトを扱うためのヘッダー}
+#---------------------------------------------------------------
+　/w{Python}と/w{C}とを連携するとき、/w{C}では/w{Python}のオブジェクトを/v{PyObject}という型で扱うので、そのために/v{Python.h}を/w{include}する必要があった。
+　今回は/w{numpy}の配列を扱うので、更に/v{arrayobject.h}というヘッダーファイルを/w{include}する必要がある。
+## src c
+#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION
+#include <Python.h>
+#include <numpy/arrayobject.h>
+## src/
+
+/idx2{エラー}
+　ヘッダーファイルが見つからないというエラーが出ることがある。
+## src plaintext
+fatal error: numpy/arrayobject.h: No such file or directory
+## src/
+
+　/w{numpy}を/w{pip}でインストールしているとこうなるらしい。一度アンインストールして/v{apt}で再インストールすると、このヘッダーファイルも付いてくる模様。
+　参照:
+　　+ /ac{numpyにarrayobject.hが存在しないのでpandasがインストールできない · Issue #1 · philopon/py3-rdkit}{https://github.com/philopon/py3-rdkit/issues/1}
+
+　それからパッケージ名は/w{python-numpy}ではダメで、/w{python3-numpy}だとインストールできた(自分の場合)。
+## src plaintext
+sudo apt install python3-numpy
+## src/
+　参照:
+　　+ /ac{numpy_install - HAIK(QHM)，オープンソース活用と実験}{https://haik.oi21.net/index.php?numpy_install}
+
+　管理者権限が無くて/w{apt}が使えない場合はソースコード等からヘッダーファイルを落としてくる必要があると思われる。
+
+#---------------------------------------------------------------
+/idx1{非推奨の機能をオフにする}
+#---------------------------------------------------------------
+　/wr{1}行目の/v{#define ...}は、非推奨の機能をオフにするもの。これが無いとコンパイル時に以下のような警告文が出る。
+## src plaintext
+/usr/include/python3.9/numpy/npy_1_7_deprecated_api.h:17:2: warning: #warning "Using deprecated NumPy API, disable it with " "#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION" [-Wcpp]
+   17 | #warning "Using deprecated NumPy API, disable it with " \
+      |  ^~~~~~~
+## src/
+## contents/
+#===============================================================
+#
+#===============================================================
+## index
+解説: 参照渡し
+## index/
+## contents
+#---------------------------------------------------------------
+/idx1{/wr{numpy}配列を/w{C}のポインタ配列として受け取る}
+#---------------------------------------------------------------
+　ソースコード内の順番とは前後するが、まずはベースとなる関数について。
+## src c
+double *getptr_to_pyarray_double(PyArrayObject *arrayin){
+    double *c;
+
+    if (PyArray_TYPE(arrayin) != NPY_DOUBLE) {
+        PyErr_SetString(PyExc_TypeError, "Array must be of type float64 (double)");
+        return NULL;
+    }
+
+    c = (double *)PyArray_DATA(arrayin);
+    return c;
+}
+## src/
+
+/b{PyArray_TYPE( PyArrayObject *obj )}
+　/v{obj}のデータ型を取得する。今回は/w{8}バイト浮動小数点数 (/v{NPY_DOUBLE}) と想定しているので、そうでない場合はエラーを返す。
+
+/b{PyArray_DATA( PyArrayObject *obj )}
+　/v{obj}のデータ型を指示するポインタを取得する。
+
+　この関数において変数/v{c}は変数/v{arrayin}と同じメモリ領域を参照している。これを戻り値として返す。
+
+#---------------------------------------------------------------
+/idx1{受け取った中身を操作する}
+#---------------------------------------------------------------
+## src c
+void inc_array(PyArrayObject *arrayin, double inc){
+    double *c;
+    int m, n;
+
+    printf("from inc_array\n");
+    printf("dimensions: %d, type: %d\n", PyArray_NDIM(arrayin), PyArray_TYPE(arrayin));
+    m = PyArray_DIM(arrayin,0);
+    n = PyArray_DIM(arrayin,1);
+
+    c = getptr_to_pyarray_double(arrayin);
+    for (int i=0; i<m*n; i++)
+        c[i] += inc;
+}
+## src/
+
+　/w{PyArrayObject}型の/v{arrayin}を/w{double}型ポインタ配列に変換したものが/v{c}。
+　これの各要素に/v{inc}を足す。
+
+#---------------------------------------------------------------
+/idx1{/wr{Python}からの呼び出し用のラッパー}
+#---------------------------------------------------------------
+## src c
+static PyObject* py_inc_array(PyObject* self, PyObject* args) {
+    PyObject *obj = NULL;
+    double inc = 0.0;
+    if (!PyArg_ParseTuple(args, "Od", &obj, &inc))
+        return NULL;
+
+    PyArrayObject *arr = (PyArrayObject *)PyArray_FROM_OTF(obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    if (arr == NULL)
+        return NULL;
+
+    inc_array(arr, inc);
+    Py_DECREF(arr);
+    Py_RETURN_NONE;
+}
+## src/
+
+/b{PyObject PyArray_FROM_OTF(PyObject *obj, int typenum, int requirements)}
+　/vr{obj}を/w{ndarray}に変換する関数。その機能は/v{PyArray_FROM_O}で提供されているが、そこに型の指定などの機能が加わったのがこの関数とのこと。
+　参照:
+　　+ /ac{Array API &#8212; NumPy v2.5 Manual - PyArray_FROM_OTF}{https://numpy.org/doc/stable/reference/c-api/array.html#c.PyArray_FROM_OTF}
+　　+ /ac{Array API &#8212; NumPy v2.5 Manual - PyArray_FROM_O}{https://numpy.org/doc/stable/reference/c-api/array.html#c.PyArray_FROM_O}
+
+/b{Py_DECREF(PyObject *obj)}
+　メモリ開放をする手続き。
+　自身が他のいくつの変数から参照されているかを確認して、それがゼロならメモリを解放する、というものらしい。
+　参照:
+　　+ /ac{Pythonのオブジェクトへの参照とガベージコレクション #ポエム - Qiita}{https://qiita.com/KMim/items/1c9e162f28309842669e}
+　　+ /ac{参照カウント &#8212; Python 3.10.22 ドキュメント}{https://docs.python.org/ja/3.10/c-api/refcounting.html#c.Py_DECREF}
+
+#---------------------------------------------------------------
+/idx1{/wr{Python}から呼び出す}
+#---------------------------------------------------------------
+　最初の例で示したように、配列/v{a}の各要素に/w{1.1}が足されており、/w{C}側での/v{a}に対する操作が/w{Python}側にそのまま反映されていることが確認できる。
+## src python
+a = np.arange(20.).reshape(4,5)
+c_module.inc_array(a, 1.1)
+print(a)
+## src/
+## src plaintext
+from inc_array
+dimensions: 2, type: 12
+[[ 1.1  2.1  3.1  4.1  5.1]
+ [ 6.1  7.1  8.1  9.1 10.1]
+ [11.1 12.1 13.1 14.1 15.1]
+ [16.1 17.1 18.1 19.1 20.1]]
+## src/
+## contents/
+#===============================================================
+#
+#===============================================================
+## index
+解説: 値渡し的な受け取り
+## index/
+## contents
+#---------------------------------------------------------------
+/idx1{/wr{numpy}配列を/w{C}のポインタ配列にコピーする}
+#---------------------------------------------------------------
+　先の関数/v{getptr_to_pyarray_double}で/w{numpy}配列をポインタ配列として受け取り、その中身を別途定義した配列にコピーする。
+　この関数も次元数に関する制限は不要なのだが、ここでは/w{2}次元という前提で大きさを取得している。
+## src c
+double *getCarray_from_pymatrix_double(PyArrayObject *arrayin){
+    int n, m;
+    double *cin, *c;
+
+    if (PyArray_TYPE(arrayin) != NPY_DOUBLE) {
+        PyErr_SetString(PyExc_TypeError, "Array must be of type float64 (double)");
+        return NULL;
+    }
+
+    m = PyArray_DIM(arrayin,0);
+    n = PyArray_DIM(arrayin,1);
+
+    cin = getptr_to_pyarray_double(arrayin);
+    c = (double *)malloc(sizeof(double)*n*m);
+    for (int i=0; i<m*n; i++){
+        c[i] = cin[i];
+    }
+    return c;
+}
+## src/
+
+#---------------------------------------------------------------
+/idx1{受け取った配列の中身を操作する}
+#---------------------------------------------------------------
+　/v{py_not_inc_array}は/v{py_inc_array}とほぼ同じ。呼び出す関数が/v{inc_array}から/v{not_inc_array}に変わるだけ。
+
+#---------------------------------------------------------------
+/idx1{/wr{Python}から呼び出す}
+#---------------------------------------------------------------
+　今度は関数の呼び出しの前後で/w{ndarray}の中身が変わっていないことが確認できる。
+## src python
+a = np.arange(20.).reshape(4,5)
+c_module.not_inc_array(a, 1.1)
+print(a)
+## src/
+## src plaintext
+from not_inc_array
+dimensions: 2, type: 12
+[[ 0.  1.  2.  3.  4.]
+ [ 5.  6.  7.  8.  9.]
+ [10. 11. 12. 13. 14.]
+ [15. 16. 17. 18. 19.]]
+## src/
+## contents/
+#===============================================================
+#
+#===============================================================
+## index
+解説: コンパイル
+## index/
+## contents
+　/ac{「基本」}{file://wsl.localhost/Debian/home/akira/website/AkiraTAKESHIMA.github.io/page_local/C/contents/python/fundamentals.html}でも述べたように、/w{C}を/w{Python}と連携させるには/w{C}のコンパイル時に/w{Python}関連のヘッダーファイルがあるディレクトリを検索対象に含める必要がある。
+　/w{Python}オブジェクトと/w{numpy}配列を使うのに必要なヘッダーファイルはそれぞれ/v{Python.h}と/v{arrayobject.h}。なお、この例では/v{arrayobject.h}は/v{numpy}というディレクトリにある前提で、ソースコードにおいて/v{numpy/arrayobject.h}で指定している。
+　自分の環境では/v{Python.h}は/v{/usr/include/python3.9}に、/v{arrayobject.h}は/v{/usr/include/python3.9/numpy}にあるので、コンパイル時に/v{-I}で/v{/usr/include/python3.9}を検索対象に加えている。
+## contents/
+#===============================================================
+#
+#===============================================================
+## ref
+numpyにarrayobject.hが存在しないのでpandasがインストールできない · Issue #1 · philopon/py3-rdkit
+https://github.com/philopon/py3-rdkit/issues/1
+
+numpy_install - HAIK(QHM)、オープンソース活用と実験
+https://haik.oi21.net/index.php?numpy_install
+
+Pythonのオブジェクトへの参照とガベージコレクション #ポエム - Qiita
+https://qiita.com/KMim/items/1c9e162f28309842669e
+
+参照カウント &#8212; Python 3.10.17 ドキュメント
+https://docs.python.org/ja/3.10/c-api/refcounting.html
+
+Data type API &#8212; NumPy v2.2 Manual
+https://numpy.org/doc/stable/reference/c-api/dtype.html
+
+Array API &#8212; NumPy v2.2 Manual
+https://numpy.org/doc/stable/reference/c-api/array.html
+
+## ref/

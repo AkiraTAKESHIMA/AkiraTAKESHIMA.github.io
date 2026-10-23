@@ -10,3 +10,7 @@
 .cRepeat { color: #8700af; font-weight: bold; }
 .cConditional { color: #8700af; font-weight: bold; }
 .cConstant { color: #008700; font-weight: bold; }
+.cStructure { color: #005faf; font-weight: bold; }
+.cOperator { color: #0087af; }
+.cDefine { color: #005faf; }
+.cFloat { color: #d75f00; }

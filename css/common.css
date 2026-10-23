@@ -153,20 +153,20 @@ span.var {
   margin-right: 3px;
 }
 span.var-n {
-  color: rgba(255,12,12);
+  color: rgba(255,180,180);
   font-family: "Cascadia Mono", '游ゴシック';
   padding: 0px 2px;
   margin-left: 0px;
   margin-right: 0px;
 }
 span.var-l {
-  color: rgba(255,12,12);
+  color: rgba(255,180,180);
   font-family: "Cascadia Mono", '游ゴシック';
   padding: 0px 2px;
   margin-left: 1px;
 }
 span.var-r {
-  color: rgba(255,12,12);
+  color: rgba(255,180,180);
   font-family: "Cascadia Mono", '游ゴシック';
   padding: 0px 2px;
   margin-right: 1px;
