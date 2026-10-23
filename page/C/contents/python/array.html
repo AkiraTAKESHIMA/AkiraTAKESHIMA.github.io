@@ -1,0 +1,431 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>配列</title>
+  <meta name="viewport" content="width=device-width">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Sheet" content="text/css">
+  <link rel="icon" href="https://akiratakeshima.github.io/img/icon/favicon_03-5.ico" />
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/fortran.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/python.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/c.css" media="all">
+  <script type="text/javascript" src="{const.url}/js/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+  <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+
+<body>
+
+  <!-- Title -->
+  <ul class='indexBox'>
+    <div class='title'>
+      配列
+    </div>
+  </ul>
+
+  <!-- Route -->
+  <ul class='indexBox'>
+    <div class='route'>
+      <u><a href="https://akiratakeshima.github.io/index.html">Top</a></u>
+      &gt; <u><a href="https://akiratakeshima.github.io/page/C/index.html">C</a></u>
+ &gt; Pythonからの呼び出し
+    </div>
+  </ul>
+
+<!-- Contents -->
+<ul class='contentBox'>
+<div class='index'>
+やりたいこと
+</div>
+<div class='contents'>
+　<span class='word'>Python</span>の<span class='word'>numpy</span>配列を<span class='word'>C</span>の関数に渡したい．今回は参照渡しと値渡しの両方を実装してみる．
+
+　参照渡し…受け取り側で中身をいじると渡した側にも反映される
+　値渡し…受け取り側で中身をいじっても渡した側に反映されない
+
+　値渡しと言っても，参照渡して受け取った配列をコピーするだけなので，やることは参照渡しとあまり変わらない．
+
+<span class='index1'><span class='word-r'>Python</span>からの呼び出し例</span>
+　<span class='var'>c_module</span>という<span class='word'>C</span>の関数を扱うモジュールを作成する．
+　　<span class='var'>inc_array</span>: <span class='word'>numpy</span>配列を参照渡しで受け取り，各要素に同じ値を加えて返す．
+　　<span class='var'>not_inc_array</span>: <span class='word'>numpy</span>配列を値渡しのような形で受け取り，それを操作する．
+　なお配列は<span class='word'>2</span>次元，<span class='word'>8</span>バイト浮動小数点数の想定．次元数に関するエラーチェックはここでは入れないが本当はきちんと入れないといけない．
+
+In
+<pre><code class="language-python"><span class="pythonInclude">import</span> numpy <span class="pythonStatement">as</span> np
+<span class="pythonInclude">import</span> c_module
+
+a = np.arange(<span class="pythonNumber">20.</span>).reshape(<span class="pythonNumber">4</span>,<span class="pythonNumber">5</span>)
+c_module.inc_array(a, <span class="pythonNumber">1.1</span>)
+<span class="pythonBuiltin">print</span>(a)
+</code></pre>
+Out
+<pre><code class="language-plaintext">from inc_array
+dimensions: 2, type: 12
+[[ 1.1  2.1  3.1  4.1  5.1]
+ [ 6.1  7.1  8.1  9.1 10.1]
+ [11.1 12.1 13.1 14.1 15.1]
+ [16.1 17.1 18.1 19.1 20.1]]
+</code></pre>
+In
+<pre><code class="language-python">a = np.arange(<span class="pythonNumber">20.</span>).reshape(<span class="pythonNumber">4</span>,<span class="pythonNumber">5</span>)
+c_module.not_inc_array(a, <span class="pythonNumber">1.1</span>)
+<span class="pythonBuiltin">print</span>(a)
+</code></pre>
+Out
+<pre><code class="language-plaintext">from not_inc_array
+dimensions: 2, type: 12
+[[ 0.  1.  2.  3.  4.]
+ [ 5.  6.  7.  8.  9.]
+ [10. 11. 12. 13. 14.]
+ [15. 16. 17. 18. 19.]]
+</code></pre>
+　このように，<span class='var'>inc_array</span>では元の配列に変更が反映されるが，<span class='var'>not_inc_array</span>では反映されない．
+
+<span class='index1'><span class='word-r'>C</span>の関数</span>
+<span class='var'>func.c</span>
+<pre><code class="language-c"><span class="cDefine">#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION</span>
+<span class="cInclude">#include </span><span class="cString">&lt;Python.h&gt;</span>
+<span class="cInclude">#include </span><span class="cString">&lt;numpy/arrayobject.h&gt;</span>
+<span class="cInclude">#include </span><span class="cString">&lt;stdio.h&gt;</span>
+
+<span class="cType">void</span> inc_array(PyArrayObject*, <span class="cType">double</span>);
+<span class="cType">void</span> not_inc_array(PyArrayObject*, <span class="cType">double</span>);
+<span class="cType">double</span> *getptr_to_pyarray_double(PyArrayObject*);
+<span class="cType">double</span> *getCarray_from_pymatrix_double(PyArrayObject*);
+
+
+<span class="cType">void</span> inc_array(PyArrayObject *arrayin, <span class="cType">double</span> inc){
+    <span class="cType">double</span> *c;
+    <span class="cType">int</span> m, n;
+
+    printf(<span class="cString">&quot;from inc_array</span><span class="cSpecial">\n</span><span class="cString">&quot;</span>);
+    printf(<span class="cString">&quot;dimensions: </span><span class="cFormat">%d</span><span class="cString">, type: </span><span class="cFormat">%d</span><span class="cSpecial">\n</span><span class="cString">&quot;</span>, PyArray_NDIM(arrayin), PyArray_TYPE(arrayin));
+    m = PyArray_DIM(arrayin,<span class="cNumber">0</span>);
+    n = PyArray_DIM(arrayin,<span class="cNumber">1</span>);
+
+    c = getptr_to_pyarray_double(arrayin);
+    <span class="cRepeat">for</span> (<span class="cType">int</span> i=<span class="cNumber">0</span>; i&lt;m*n; i++)
+        c[i] += inc;
+}
+
+
+<span class="cType">void</span> not_inc_array(PyArrayObject *arrayin, <span class="cType">double</span> inc){
+    <span class="cType">double</span> *c;
+    <span class="cType">int</span> m, n;
+
+    printf(<span class="cString">&quot;from not_inc_array</span><span class="cSpecial">\n</span><span class="cString">&quot;</span>);
+    printf(<span class="cString">&quot;dimensions: </span><span class="cFormat">%d</span><span class="cString">, type: </span><span class="cFormat">%d</span><span class="cSpecial">\n</span><span class="cString">&quot;</span>, PyArray_NDIM(arrayin), PyArray_TYPE(arrayin));
+    m = PyArray_DIM(arrayin,<span class="cNumber">0</span>);
+    n = PyArray_DIM(arrayin,<span class="cNumber">1</span>);
+
+    c = getCarray_from_pymatrix_double(arrayin);
+    <span class="cRepeat">for</span> (<span class="cType">int</span> i=<span class="cNumber">0</span>; i&lt;m*n; i++)
+        c[i] += inc;
+
+    free(c);
+}
+
+
+<span class="cType">double</span> *getptr_to_pyarray_double(PyArrayObject *arrayin){
+    <span class="cType">double</span> *c;
+
+    <span class="cConditional">if</span> (PyArray_TYPE(arrayin) != NPY_DOUBLE) {
+        PyErr_SetString(PyExc_TypeError, <span class="cString">&quot;Array must be of type float64 (double)&quot;</span>);
+        <span class="cStatement">return</span> <span class="cConstant">NULL</span>;
+    }
+
+    c = (<span class="cType">double</span> *)PyArray_DATA(arrayin);
+    <span class="cStatement">return</span> c;
+}
+
+
+<span class="cType">double</span> *getCarray_from_pymatrix_double(PyArrayObject *arrayin){
+    <span class="cType">int</span> n, m;
+    <span class="cType">double</span> *cin, *c;
+
+    <span class="cConditional">if</span> (PyArray_TYPE(arrayin) != NPY_DOUBLE) {
+        PyErr_SetString(PyExc_TypeError, <span class="cString">&quot;Array must be of type float64 (double)&quot;</span>);
+        <span class="cStatement">return</span> <span class="cConstant">NULL</span>;
+    }
+
+    m = PyArray_DIM(arrayin,<span class="cNumber">0</span>);
+    n = PyArray_DIM(arrayin,<span class="cNumber">1</span>);
+
+    cin = getptr_to_pyarray_double(arrayin);
+    c = (<span class="cType">double</span> *)malloc(<span class="cOperator">sizeof</span>(<span class="cType">double</span>)*n*m);
+    <span class="cRepeat">for</span> (<span class="cType">int</span> i=<span class="cNumber">0</span>; i&lt;m*n; i++){
+        c[i] = cin[i];
+    }
+    <span class="cStatement">return</span> c;
+}
+</code></pre>
+<span class='index1'><span class='word'>C</span>のラッパー</span>
+<span class='var'>wrap.c</span>
+<pre><code class="language-c"><span class="cDefine">#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION</span>
+<span class="cInclude">#include </span><span class="cString">&lt;Python.h&gt;</span>
+<span class="cInclude">#include </span><span class="cString">&lt;numpy/arrayobject.h&gt;</span>
+<span class="cInclude">#include </span><span class="cString">&lt;stdio.h&gt;</span>
+
+<span class="cStorageClass">extern</span> <span class="cType">void</span> inc_array(PyArrayObject*, <span class="cType">double</span>);
+<span class="cStorageClass">extern</span> <span class="cType">void</span> not_inc_array(PyArrayObject*, <span class="cType">double</span>);
+
+
+<span class="cStorageClass">static</span> PyObject* py_inc_array(PyObject* self, PyObject* args) {
+    PyObject *obj = <span class="cConstant">NULL</span>;
+    <span class="cType">double</span> inc = <span class="cFloat">0.0</span>;
+    <span class="cConditional">if</span> (!PyArg_ParseTuple(args, <span class="cString">&quot;Od&quot;</span>, &amp;obj, &amp;inc))
+        <span class="cStatement">return</span> <span class="cConstant">NULL</span>;
+
+    PyArrayObject *arr = (PyArrayObject *)PyArray_FROM_OTF(obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    <span class="cConditional">if</span> (arr == <span class="cConstant">NULL</span>)
+        <span class="cStatement">return</span> <span class="cConstant">NULL</span>;
+
+    inc_array(arr, inc);
+    Py_DECREF(arr);
+    Py_RETURN_NONE;
+}
+
+<span class="cStorageClass">static</span> PyObject* py_not_inc_array(PyObject* self, PyObject* args) {
+    PyObject *obj = <span class="cConstant">NULL</span>;
+    <span class="cType">double</span> inc = <span class="cFloat">0.0</span>;
+    <span class="cConditional">if</span> (!PyArg_ParseTuple(args, <span class="cString">&quot;Od&quot;</span>, &amp;obj, &amp;inc))
+        <span class="cStatement">return</span> <span class="cConstant">NULL</span>;
+
+    PyArrayObject *arr = (PyArrayObject *)PyArray_FROM_OTF(obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    <span class="cConditional">if</span> (arr == <span class="cConstant">NULL</span>)
+        <span class="cStatement">return</span> <span class="cConstant">NULL</span>;
+
+    not_inc_array(arr, inc);
+    Py_DECREF(arr);
+    Py_RETURN_NONE;
+}
+
+<span class="cStorageClass">static</span> PyMethodDef MyMethods[] = {
+    {<span class="cString">&quot;inc_array&quot;</span>, py_inc_array, METH_VARARGS, <span class="cString">&quot;Increace the values of numpy array&quot;</span>},
+    {<span class="cString">&quot;not_inc_array&quot;</span>, py_not_inc_array, METH_VARARGS, <span class="cString">&quot;Not increase the values of numpy array&quot;</span>},
+    {<span class="cConstant">NULL</span>, <span class="cConstant">NULL</span>, <span class="cNumber">0</span>, <span class="cConstant">NULL</span>}
+};
+
+<span class="cStorageClass">static</span> <span class="cStructure">struct</span> PyModuleDef c_module = {
+    PyModuleDef_HEAD_INIT,
+    <span class="cString">&quot;c_module&quot;</span>,   <span class="cComment">// name of module</span>
+    <span class="cConstant">NULL</span>,         <span class="cComment">// module documentation</span>
+    -<span class="cNumber">1</span>,           <span class="cComment">// size of per-interpreter state of the module</span>
+    MyMethods
+};
+
+PyMODINIT_FUNC PyInit_c_module(<span class="cType">void</span>) {
+    import_array();  <span class="cComment">// ← NumPy配列を扱うには必須</span>
+    <span class="cStatement">return</span> PyModule_Create(&amp;c_module);
+}
+</code></pre>
+<span class='index1'>コンパイル</span>
+<pre><code class="language-plaintext">$ gcc -fPIC -Wall -c func.c -I/usr/include/python3.9
+$ gcc -fPIC -Wall -c wrap.c -I/usr/include/python3.9
+$ gcc -fPIC -Wall -shared -o c_module.so *.o
+</code></pre>
+</div>
+<div class='index'>
+解説: ヘッダー
+</div>
+<div class='contents'>
+<span class='index1'><span class='word-r'>Python</span>オブジェクトを扱うためのヘッダー</span>
+　<span class='word'>Python</span>と<span class='word'>C</span>とを連携するとき，<span class='word'>C</span>では<span class='word'>Python</span>のオブジェクトを<span class='var'>PyObject</span>という型で扱うので，そのために<span class='var'>Python.h</span>を<span class='word'>include</span>する必要があった．
+　今回は<span class='word'>numpy</span>の配列を扱うので，更に<span class='var'>arrayobject.h</span>というヘッダーファイルを<span class='word'>include</span>する必要がある．
+<pre><code class="language-c"><span class="cDefine">#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION</span>
+<span class="cInclude">#include </span><span class="cString">&lt;Python.h&gt;</span>
+<span class="cInclude">#include </span><span class="cString">&lt;numpy/arrayobject.h&gt;</span>
+</code></pre>
+<span class='index2'>エラー</span>
+　ヘッダーファイルが見つからないというエラーが出ることがある．
+<pre><code class="language-plaintext">fatal error: numpy/arrayobject.h: No such file or directory
+</code></pre>
+　<span class='word'>numpy</span>を<span class='word'>pip</span>でインストールしているとこうなるらしい．一度アンインストールして<span class='var'>apt</span>で再インストールすると，このヘッダーファイルも付いてくる模様．
+　参照:
+　　+ <a class='colored' href="https://github.com/philopon/py3-rdkit/issues/1">numpyにarrayobject.hが存在しないのでpandasがインストールできない · Issue #1 · philopon/py3-rdkit</a>
+
+　それからパッケージ名は<span class='word'>python-numpy</span>ではダメで，<span class='word'>python3-numpy</span>だとインストールできた(自分の場合)．
+<pre><code class="language-plaintext">sudo apt install python3-numpy
+</code></pre>　参照:
+　　+ <a class='colored' href="https://haik.oi21.net/index.php?numpy_install">numpy_install - HAIK(QHM)，オープンソース活用と実験</a>
+
+　管理者権限が無くて<span class='word'>apt</span>が使えない場合はソースコード等からヘッダーファイルを落としてくる必要があると思われる．
+
+<span class='index1'>非推奨の機能をオフにする</span>
+　<span class='word-r'>1</span>行目の<span class='var'>#define ...</span>は，非推奨の機能をオフにするもの．これが無いとコンパイル時に以下のような警告文が出る．
+<pre><code class="language-plaintext">/usr/include/python3.9/numpy/npy_1_7_deprecated_api.h:17:2: warning: #warning &quot;Using deprecated NumPy API, disable it with &quot; &quot;#define NPY_NO_DEPRECATED_API NPY_1_7_API_VERSION&quot; [-Wcpp]
+   17 | #warning &quot;Using deprecated NumPy API, disable it with &quot; \
+      |  ^~~~~~~
+</code></pre>
+</div>
+<div class='index'>
+解説: 参照渡し
+</div>
+<div class='contents'>
+<span class='index1'><span class='word-r'>numpy</span>配列を<span class='word'>C</span>のポインタ配列として受け取る</span>
+　ソースコード内の順番とは前後するが，まずはベースとなる関数について．
+<pre><code class="language-c"><span class="cType">double</span> *getptr_to_pyarray_double(PyArrayObject *arrayin){
+    <span class="cType">double</span> *c;
+
+    <span class="cConditional">if</span> (PyArray_TYPE(arrayin) != NPY_DOUBLE) {
+        PyErr_SetString(PyExc_TypeError, <span class="cString">&quot;Array must be of type float64 (double)&quot;</span>);
+        <span class="cStatement">return</span> <span class="cConstant">NULL</span>;
+    }
+
+    c = (<span class="cType">double</span> *)PyArray_DATA(arrayin);
+    <span class="cStatement">return</span> c;
+}
+</code></pre>
+<span class='bld'>PyArray_TYPE( PyArrayObject *obj )</span>
+　<span class='var'>obj</span>のデータ型を取得する．今回は<span class='word'>8</span>バイト浮動小数点数 (<span class='var'>NPY_DOUBLE</span>) と想定しているので，そうでない場合はエラーを返す．
+
+<span class='bld'>PyArray_DATA( PyArrayObject *obj )</span>
+　<span class='var'>obj</span>のデータ型を指示するポインタを取得する．
+
+　この関数において変数<span class='var'>c</span>は変数<span class='var'>arrayin</span>と同じメモリ領域を参照している．これを戻り値として返す．
+
+<span class='index1'>受け取った中身を操作する</span>
+<pre><code class="language-c"><span class="cType">void</span> inc_array(PyArrayObject *arrayin, <span class="cType">double</span> inc){
+    <span class="cType">double</span> *c;
+    <span class="cType">int</span> m, n;
+
+    printf(<span class="cString">&quot;from inc_array</span><span class="cSpecial">\n</span><span class="cString">&quot;</span>);
+    printf(<span class="cString">&quot;dimensions: </span><span class="cFormat">%d</span><span class="cString">, type: </span><span class="cFormat">%d</span><span class="cSpecial">\n</span><span class="cString">&quot;</span>, PyArray_NDIM(arrayin), PyArray_TYPE(arrayin));
+    m = PyArray_DIM(arrayin,<span class="cNumber">0</span>);
+    n = PyArray_DIM(arrayin,<span class="cNumber">1</span>);
+
+    c = getptr_to_pyarray_double(arrayin);
+    <span class="cRepeat">for</span> (<span class="cType">int</span> i=<span class="cNumber">0</span>; i&lt;m*n; i++)
+        c[i] += inc;
+}
+</code></pre>
+　<span class='word'>PyArrayObject</span>型の<span class='var'>arrayin</span>を<span class='word'>double</span>型ポインタ配列に変換したものが<span class='var'>c</span>．
+　これの各要素に<span class='var'>inc</span>を足す．
+
+<span class='index1'><span class='word-r'>Python</span>からの呼び出し用のラッパー</span>
+<pre><code class="language-c"><span class="cStorageClass">static</span> PyObject* py_inc_array(PyObject* self, PyObject* args) {
+    PyObject *obj = <span class="cConstant">NULL</span>;
+    <span class="cType">double</span> inc = <span class="cFloat">0.0</span>;
+    <span class="cConditional">if</span> (!PyArg_ParseTuple(args, <span class="cString">&quot;Od&quot;</span>, &amp;obj, &amp;inc))
+        <span class="cStatement">return</span> <span class="cConstant">NULL</span>;
+
+    PyArrayObject *arr = (PyArrayObject *)PyArray_FROM_OTF(obj, NPY_DOUBLE, NPY_ARRAY_IN_ARRAY);
+    <span class="cConditional">if</span> (arr == <span class="cConstant">NULL</span>)
+        <span class="cStatement">return</span> <span class="cConstant">NULL</span>;
+
+    inc_array(arr, inc);
+    Py_DECREF(arr);
+    Py_RETURN_NONE;
+}
+</code></pre>
+<span class='bld'>PyObject PyArray_FROM_OTF(PyObject *obj, int typenum, int requirements)</span>
+　<span class='var-r'>obj</span>を<span class='word'>ndarray</span>に変換する関数．その機能は<span class='var'>PyArray_FROM_O</span>で提供されているが，そこに型の指定などの機能が加わったのがこの関数とのこと．
+　参照:
+　　+ <a class='colored' href="https://numpy.org/doc/stable/reference/c-api/array.html#c.PyArray_FROM_OTF">Array API &#8212; NumPy v2.5 Manual - PyArray_FROM_OTF</a>
+　　+ <a class='colored' href="https://numpy.org/doc/stable/reference/c-api/array.html#c.PyArray_FROM_O">Array API &#8212; NumPy v2.5 Manual - PyArray_FROM_O</a>
+
+<span class='bld'>Py_DECREF(PyObject *obj)</span>
+　メモリ開放をする手続き．
+　自身が他のいくつの変数から参照されているかを確認して，それがゼロならメモリを解放する，というものらしい．
+　参照:
+　　+ <a class='colored' href="https://qiita.com/KMim/items/1c9e162f28309842669e">Pythonのオブジェクトへの参照とガベージコレクション #ポエム - Qiita</a>
+　　+ <a class='colored' href="https://docs.python.org/ja/3.10/c-api/refcounting.html#c.Py_DECREF">参照カウント &#8212; Python 3.10.22 ドキュメント</a>
+
+<span class='index1'><span class='word-r'>Python</span>から呼び出す</span>
+　最初の例で示したように，配列<span class='var'>a</span>の各要素に<span class='word'>1.1</span>が足されており，<span class='word'>C</span>側での<span class='var'>a</span>に対する操作が<span class='word'>Python</span>側にそのまま反映されていることが確認できる．
+<pre><code class="language-python">a = np.arange(<span class="pythonNumber">20.</span>).reshape(<span class="pythonNumber">4</span>,<span class="pythonNumber">5</span>)
+c_module.inc_array(a, <span class="pythonNumber">1.1</span>)
+<span class="pythonBuiltin">print</span>(a)
+</code></pre>
+<pre><code class="language-plaintext">from inc_array
+dimensions: 2, type: 12
+[[ 1.1  2.1  3.1  4.1  5.1]
+ [ 6.1  7.1  8.1  9.1 10.1]
+ [11.1 12.1 13.1 14.1 15.1]
+ [16.1 17.1 18.1 19.1 20.1]]
+</code></pre>
+</div>
+<div class='index'>
+解説: 値渡し的な受け取り
+</div>
+<div class='contents'>
+<span class='index1'><span class='word-r'>numpy</span>配列を<span class='word'>C</span>のポインタ配列にコピーする</span>
+　先の関数<span class='var'>getptr_to_pyarray_double</span>で<span class='word'>numpy</span>配列をポインタ配列として受け取り，その中身を別途定義した配列にコピーする．
+　この関数も次元数に関する制限は不要なのだが，ここでは<span class='word'>2</span>次元という前提で大きさを取得している．
+<pre><code class="language-c"><span class="cType">double</span> *getCarray_from_pymatrix_double(PyArrayObject *arrayin){
+    <span class="cType">int</span> n, m;
+    <span class="cType">double</span> *cin, *c;
+
+    <span class="cConditional">if</span> (PyArray_TYPE(arrayin) != NPY_DOUBLE) {
+        PyErr_SetString(PyExc_TypeError, <span class="cString">&quot;Array must be of type float64 (double)&quot;</span>);
+        <span class="cStatement">return</span> <span class="cConstant">NULL</span>;
+    }
+
+    m = PyArray_DIM(arrayin,<span class="cNumber">0</span>);
+    n = PyArray_DIM(arrayin,<span class="cNumber">1</span>);
+
+    cin = getptr_to_pyarray_double(arrayin);
+    c = (<span class="cType">double</span> *)malloc(<span class="cOperator">sizeof</span>(<span class="cType">double</span>)*n*m);
+    <span class="cRepeat">for</span> (<span class="cType">int</span> i=<span class="cNumber">0</span>; i&lt;m*n; i++){
+        c[i] = cin[i];
+    }
+    <span class="cStatement">return</span> c;
+}
+</code></pre>
+<span class='index1'>受け取った配列の中身を操作する</span>
+　<span class='var'>py_not_inc_array</span>は<span class='var'>py_inc_array</span>とほぼ同じ．呼び出す関数が<span class='var'>inc_array</span>から<span class='var'>not_inc_array</span>に変わるだけ．
+
+<span class='index1'><span class='word-r'>Python</span>から呼び出す</span>
+　今度は関数の呼び出しの前後で<span class='word'>ndarray</span>の中身が変わっていないことが確認できる．
+<pre><code class="language-python">a = np.arange(<span class="pythonNumber">20.</span>).reshape(<span class="pythonNumber">4</span>,<span class="pythonNumber">5</span>)
+c_module.not_inc_array(a, <span class="pythonNumber">1.1</span>)
+<span class="pythonBuiltin">print</span>(a)
+</code></pre>
+<pre><code class="language-plaintext">from not_inc_array
+dimensions: 2, type: 12
+[[ 0.  1.  2.  3.  4.]
+ [ 5.  6.  7.  8.  9.]
+ [10. 11. 12. 13. 14.]
+ [15. 16. 17. 18. 19.]]
+</code></pre>
+</div>
+<div class='index'>
+解説: コンパイル
+</div>
+<div class='contents'>
+　<a class='colored' href="file://wsl.localhost/Debian/home/akira/website/AkiraTAKESHIMA.github.io/page_local/C/contents/python/fundamentals.html">「基本」</a>でも述べたように，<span class='word'>C</span>を<span class='word'>Python</span>と連携させるには<span class='word'>C</span>のコンパイル時に<span class='word'>Python</span>関連のヘッダーファイルがあるディレクトリを検索対象に含める必要がある．
+　<span class='word'>Python</span>オブジェクトと<span class='word'>numpy</span>配列を使うのに必要なヘッダーファイルはそれぞれ<span class='var'>Python.h</span>と<span class='var'>arrayobject.h</span>．なお，この例では<span class='var'>arrayobject.h</span>は<span class='var'>numpy</span>というディレクトリにある前提で，ソースコードにおいて<span class='var'>numpy/arrayobject.h</span>で指定している．
+　自分の環境では<span class='var'>Python.h</span>は<span class='var'>/usr/include/python3.9</span>に，<span class='var'>arrayobject.h</span>は<span class='var'>/usr/include/python3.9/numpy</span>にあるので，コンパイル時に<span class='var'>-I</span>で<span class='var'>/usr/include/python3.9</span>を検索対象に加えている．
+</div>
+</ul>
+
+<!-- References -->
+<ul class='contentBox'>
+<div class='index'>References</div>
+<div class='ref'>
+numpyにarrayobject.hが存在しないのでpandasがインストールできない · Issue #1 · philopon/py3-rdkit
+  + <a href="https://github.com/philopon/py3-rdkit/issues/1">https://github.com/philopon/py3-rdkit/issues/1</a>
+
+numpy_install - HAIK(QHM)、オープンソース活用と実験
+  + <a href="https://haik.oi21.net/index.php?numpy_install">https://haik.oi21.net/index.php?numpy_install</a>
+
+Pythonのオブジェクトへの参照とガベージコレクション #ポエム - Qiita
+  + <a href="https://qiita.com/KMim/items/1c9e162f28309842669e">https://qiita.com/KMim/items/1c9e162f28309842669e</a>
+
+参照カウント &#8212; Python 3.10.17 ドキュメント
+  + <a href="https://docs.python.org/ja/3.10/c-api/refcounting.html">https://docs.python.org/ja/3.10/c-api/refcounting.html</a>
+
+Data type API &#8212; NumPy v2.2 Manual
+  + <a href="https://numpy.org/doc/stable/reference/c-api/dtype.html">https://numpy.org/doc/stable/reference/c-api/dtype.html</a>
+
+Array API &#8212; NumPy v2.2 Manual
+  + <a href="https://numpy.org/doc/stable/reference/c-api/array.html">https://numpy.org/doc/stable/reference/c-api/array.html</a>
+</div>
+</ul>
+</body>
+</html>
+

@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>基本</title>
+  <meta name="viewport" content="width=device-width">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Sheet" content="text/css">
+  <link rel="icon" href="https://akiratakeshima.github.io/img/icon/favicon_03-5.ico" />
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/fortran.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/python.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/c.css" media="all">
+  <script type="text/javascript" src="{const.url}/js/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+  <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+
+<body>
+
+  <!-- Title -->
+  <ul class='indexBox'>
+    <div class='title'>
+      基本
+    </div>
+  </ul>
+
+  <!-- Route -->
+  <ul class='indexBox'>
+    <div class='route'>
+      <u><a href="https://akiratakeshima.github.io/index.html">Top</a></u>
+      &gt; <u><a href="https://akiratakeshima.github.io/page/C/index.html">C</a></u>
+ &gt; Pythonからの呼び出し
+    </div>
+  </ul>
+
+<!-- Contents -->
+<ul class='contentBox'>
+<div class='index'>
+Quick Start
+</div>
+<div class='contents'>
+　こういう感じで<span class='word'>C</span>の自作関数 doYouDo を呼び出したい．
+<pre><code class="language-python"><span class="pythonInclude">import</span> hello
+
+hello.doYouDo()
+&gt;&gt;Hello, I am (null).
+
+hello.doYouDo(<span class="pythonString">&quot;</span><span class="pythonString">an researcher</span><span class="pythonString">&quot;</span>)
+&gt;&gt;Hello, I am an researcher.
+</code></pre>
+<span class='index1'><span class='word-r'>C</span>の関数</span>
+<span class='var'>what.c</span>
+<pre><code class="language-c"><span class="cInclude">#include </span><span class="cString">&lt;stdio.h&gt;</span>
+
+<span class="cType">void</span> doYouDo(<span class="cStorageClass">const</span> <span class="cType">char</span>* job){
+  printf(<span class="cString">&quot;Hello, I am </span><span class="cFormat">%s</span><span class="cString">.</span><span class="cSpecial">\n</span><span class="cString">&quot;</span>, job);
+}
+</code></pre>
+<span class='index1'><span class='word-r'>C</span>の関数のラッパー</span>
+<span class='var'>whatWrap.c</span>
+<pre><code class="language-c"><span class="cInclude">#include </span><span class="cString">&lt;Python.h&gt;</span>
+
+<span class="cStorageClass">extern</span> <span class="cType">void</span> doYouDo(<span class="cStorageClass">const</span> <span class="cType">char</span>*);
+
+PyObject* what_doYouDo(PyObject* self, PyObject* args, PyObject* kw){
+  <span class="cStorageClass">const</span> <span class="cType">char</span>* job = <span class="cConstant">NULL</span>;
+  <span class="cStorageClass">static</span> <span class="cType">char</span>* argnames[] = {<span class="cString">&quot;job&quot;</span>, <span class="cConstant">NULL</span>};
+  <span class="cConditional">if</span>(!PyArg_ParseTupleAndKeywords(args, kw, <span class="cString">&quot;|s&quot;</span>, argnames, &amp;job))
+    <span class="cStatement">return</span> <span class="cConstant">NULL</span>;
+  doYouDo(job);
+  <span class="cStatement">return</span> Py_BuildValue(<span class="cString">&quot;&quot;</span>);
+}
+
+<span class="cStorageClass">static</span> PyMethodDef whatmethods[] = {
+  {<span class="cString">&quot;doYouDo&quot;</span>, (PyCFunction)what_doYouDo, METH_VARARGS | METH_KEYWORDS, <span class="cString">&quot;&quot;</span>},
+  {<span class="cConstant">NULL</span>, <span class="cConstant">NULL</span>, <span class="cNumber">0</span>, <span class="cConstant">NULL</span>},
+};
+
+<span class="cStorageClass">static</span> <span class="cStructure">struct</span> PyModuleDef hello = {
+  PyModuleDef_HEAD_INIT,
+  <span class="cString">&quot;hello&quot;</span>,
+  <span class="cString">&quot;Python3 C API Module (Sample 1)&quot;</span>,
+  -<span class="cNumber">1</span>,
+  whatmethods
+};
+
+PyMODINIT_FUNC PyInit_hello(<span class="cType">void</span>){
+  <span class="cStatement">return</span> PyModule_Create(&amp;hello);
+};
+</code></pre>
+<span class='index1'>コンパイル</span>
+<pre><code class="language-plaintext">$ gcc -fPIC -Wall -c -o what.o what.c
+$ gcc -fPIC -Wall -c -o whatWrap.o whatWrap.c -I/usr/include/python3.9
+$ gcc -fPIC -Wall -shared -o hello.so what.o whatWrap.o
+</code></pre>
+　これで<span class='word'>Python</span>から呼び出せる<span class='word'>C</span>のモジュール<span class='var'>hello</span>ができた．最初のサンプルコードのようにして関数を呼び出す．
+</div>
+<div class='index'>
+解説
+</div>
+<div class='contents'>
+<span class='index1'>ラッパー</span>
+　<span class='word'>Python</span>から呼び出した際の引数の処理及び戻り値の定義を行う関数を定義する．
+
+<pre><code class="language-c">PyObject* what_doYouDo(PyObject* self, PyObject* args, PyObject* kw){
+  <span class="cStorageClass">const</span> <span class="cType">char</span>* job = <span class="cConstant">NULL</span>;
+  <span class="cStorageClass">static</span> <span class="cType">char</span>* argnames[] = {<span class="cString">&quot;job&quot;</span>, <span class="cConstant">NULL</span>};
+  <span class="cConditional">if</span>(!PyArg_ParseTupleAndKeywords(args, kw, <span class="cString">&quot;|s&quot;</span>, argnames, &amp;job))
+    <span class="cStatement">return</span> <span class="cConstant">NULL</span>;
+  doYouDo(job);
+  <span class="cStatement">return</span> Py_BuildValue(<span class="cString">&quot;&quot;</span>);
+}
+</code></pre>
+<span class='index2'><span class='var'>what_doYouDo</span>の引数</span>
+　<span class='var'>self</span>, <span class='var'>args</span>, <span class='var'>kw</span>はそれぞれ関数自身，引数，キーワード．いずれも<span class='var'>PyObjec</span>型の構造体で参照渡しらしい．
+
+<span class='index2'>PyArg_ParseTupleAndKeywords</span>
+　この手続きで引数とキーワードを解析する．詳細:
+　　+ <a class='colored' href="https://docs.python.org/ja/3.13/c-api/arg.html#c.PyArg_ParseTupleAndKeywords">引数の解釈と値の構築 &#8212; Python 3.13.3 ドキュメント -  - c.PyArg_ParseTupleAndKeywords</a>
+
+　<span class='word-r'>3</span>つ目の引数 (ここでは<span class='var'>|s</span>) は<span class='word'>Python</span>で与えられた引数を<span class='word'>C</span>のどの型に変換するかを指定する．代表的なものとして<span class='var'>s</span>は文字列を指すポインタ，<span class='var'>i</span>は<span class='word'>int</span>型，<span class='var'>d</span>は<span class='word'>double float</span>型など．<span class='var'>|</span>以降はキーワード引数，つまり無くても関数が動作する引数．ここでは位置引数 (必須の引数) が無く<span class='var'>job</span>というキーワード引数のみで，これが文字列と想定しているので<span class='var'>|s</span>となる．型についての詳細:
+　　+ <a class='colored' href="https://docs.python.org/ja/3.13/c-api/arg.html">引数の解釈と値の構築 &#8212; Python 3.13.3 ドキュメント</a>
+
+　<span class='word-r'>4</span>つ目の引数 (<span class='var'>argnames</span>) は「The keywords argument is a NULL-terminated array of keyword parameter names...」(ドキュメントより) とのことで，この例のように，キーワードの一覧の後ろに<span class='var'>NULL</span>を加えたものを与える．
+
+　<span class='word-r'>Python</span>側で引数の与え方を誤ると，引数の解析に失敗し，<span class='var'>PyArg_ParseTupleAndKeywords</span>が<span class='word'>False</span>を返す．その場合この例では<span class='var'>NULL</span>を返す (<span class='var'>return NULL</span>)．
+
+　また引数<span class='var'>job</span>はキーワード引数ということで，<span class='word'>Python</span>から値が与えられない場合未定義の状態になってしまうので，
+<pre><code class="language-c">  <span class="cStorageClass">const</span> <span class="cType">char</span>* job = <span class="cConstant">NULL</span>;
+</code></pre>で定義しておく．
+
+　引数の解析に成功すると，いよいよ関数の本体<span class='var'>doYouDo</span>が呼び出される．
+<pre><code class="language-c">  doYouDo(job);
+</code></pre>
+　最後に戻り値を<span class='var'>Py_BuildValue</span>で<span class='word'>Python</span>オブジェクトに変換して返す．
+<pre><code class="language-c">  <span class="cStatement">return</span> Py_BuildValue(<span class="cString">&quot;&quot;</span>);
+</code></pre>
+　この関数のように戻り値を持たない場合は空の文字列を入れる．
+
+　戻り値がある場合は<span class='var'>Py_BuildValue(<span class='it'>format</span>, <span class='it'>value1</span>, <span class='it'>value2</span>, ...)</span>のような形で，<span class='word'>C</span>の変数<span class='word'>value1, value2, ...</span>を<span class='word'>format</span>に従って<span class='word'>Python</span>オブジェクトに変換したものを返す．<span class='word'>format</span>は先の<span class='word'>PyArg_ParseTupleAndKeywords</span>と同じ(多分)．詳細:
+　　+ <a class='colored' href="https://docs.python.org/ja/3.13/c-api/arg.html#c.Py_BuildValue">引数の解釈と値の構築 &#8212; Python 3.13.3 ドキュメント - c.Py_BuildValue</a>
+
+<span class='index1'>モジュールに入れる手続きのリストアップ</span>
+<pre><code class="language-c"><span class="cStorageClass">static</span> PyMethodDef whatmethods[] = {
+  {<span class="cString">&quot;doYouDo&quot;</span>, (PyCFunction)what_doYouDo, METH_VARARGS | METH_KEYWORDS, <span class="cString">&quot;&quot;</span>},
+  {<span class="cConstant">NULL</span>, <span class="cConstant">NULL</span>, <span class="cNumber">0</span>, <span class="cConstant">NULL</span>},
+};
+</code></pre>
+　括弧 <span class='var'>{}</span> 内の引数は
+　　{手続き名，ラッパーのオブジェクト，引数の与え方，手続きの説明}
+
+　<span class='word-r'>1</span>つ目の「手続き名」は<span class='word'>C</span>の関数名と同じである必要は無く，任意に決められるらしい．<span class='word'>Python</span>側から呼び出すときにどういう名前でその手続きを呼び出したいか，ということ．
+
+　<span class='word-r'>2</span>つ目は先に定義したラッパー．<span class='var'>(PytCFunction)</span>でキャストする．
+
+　<span class='word-r'>3</span>つ目の「引数の与え方」は，この例のようにキーワード引数がある場合はこのように書くが，位置引数のみの場合は<span class='var'>METH_VARARGS</span>だけで良い．引数が無い場合は<span class='word'>NULL</span>で良い？　不明，要確認．
+
+　詳細:
+　　+ <a class='colored' href="https://docs.python.org/ja/3/c-api/structures.html">共通のオブジェクト構造体 (common object structure) &#8212; Python 3.13.3 ドキュメント</a>
+
+　最後の<span class='var'>{NULL, NULL, 0, NULL}</span>というのは何だか分からないが，終端であることを教える的な役割なのだと思う．知らんけど．単に<span class='var'>{NULL}</span>などでも良いらしい．
+
+<span class='index1'>モジュールの定義</span>
+　値の細かい説明はあまり重要ではないと思うが，一応書いておく．
+
+<pre><code class="language-c"><span class="cStorageClass">static</span> <span class="cStructure">struct</span> PyModuleDef hello = {
+  PyModuleDef_HEAD_INIT, <span class="cComment">// 初期化</span>
+  <span class="cString">&quot;hoge&quot;</span>, <span class="cComment">// モジュールの名前</span>
+  <span class="cString">&quot;Python3 C API Module (Sample 1)&quot;</span>, <span class="cComment">// 説明</span>
+  -<span class="cNumber">1</span>,  <span class="cComment">// モジュールの状態</span>
+  whatmethods  <span class="cComment">// 先に定義した、モジュールに入れる手続き群</span>
+};
+</code></pre>
+　<span class='var'>PyModuleDef</span>型のオブジェクトを作成する．
+　必ず<span class='word'>PyModuleDef_HEAD_INIT</span>で初期化する．名前はモジュール名とは独立に，任意に決められる．もちろん説明も．<span class='word'>Python</span>側からはそれぞれ以下のように取得できる．
+
+<pre><code class="language-python">hello.__name__
+&gt;&gt;<span class="pythonString">'</span><span class="pythonString">hoge</span><span class="pythonString">'</span>
+
+hello.__doc__
+&gt;&gt;<span class="pythonString">'</span><span class="pythonString">Python3 C API Module (Sample 1)</span><span class="pythonString">'</span>
+</code></pre>
+　モジュールの状態についてはよく分からないがとりあえず<span class='word'>-1</span>で良さそう．
+
+<span class='index1'>モジュールの初期化</span>
+
+　最後に，<span class='word'>Python</span>でモジュールを<span class='word'>import</span>した際に呼び出される初期化関数を定義する．
+　<span class='var'>PyModule_Create</span>に，今作ったモジュールを与える．
+<pre><code class="language-c">PyMODINIT_FUNC PyInit_hello(<span class="cType">void</span>){
+  <span class="cStatement">return</span> PyModule_Create(&amp;hello);
+};
+</code></pre>
+<span class='index1'>コンパイル</span>
+<pre><code class="language-plaintext">$ gcc -fPIC -Wall -c -o what.o what.c
+$ gcc -fPIC -Wall -c -o whatWrap.o whatWrap.c -I/usr/include/python3.9
+$ gcc -fPIC -Wall -shared -o hello.so what.o whatWrap.o
+</code></pre>
+　<span class='word-r'>1</span>つ目は普通の<span class='word'>C</span>のコンパイル．
+
+　<span class='word-r'>2</span>つ目は少し注意．ヘッダファイル<span class='var'>Python.h</span>を<span class='word'>include</span>しているので，そのファイルがあるディレクトリが検索対象に含まれていなければならない．<span class='var'>~/.bash_profile</span>などで予めパスに含まれていない場合は，この例のように<span class='var'>-I</span>オプションでそのディレクトリを追加する．
+
+　<span class='word-r'>3</span>つ目のコマンドで共有ライブラリを作成している．
+
+　以上！　思った以上に手順が多くて大変．
+</div>
+<div class='index'>
+補足
+</div>
+<div class='contents'>
+　下の<span class='word'>References</span>にあるとおり，既に同様の日本語記事は複数あるが，自分でやってみたら動かなかったりよく分からないところがあったりしたので，勉強を兼ねて自分なりにまとめた．
+</div>
+</ul>
+
+<!-- References -->
+<ul class='contentBox'>
+<div class='index'>References</div>
+<div class='ref'>
+引数の解釈と値の構築 &#8212; Python 3.13.3 ドキュメント
+  + <a href="https://docs.python.org/ja/3.13/c-api/arg.html">https://docs.python.org/ja/3.13/c-api/arg.html</a>
+
+引数の解釈と値の構築 &#8212; Python 3.13.3 ドキュメント - c.PyArg_ParseTupleAndKeywords
+  + <a href="https://docs.python.org/ja/3.13/c-api/arg.html#c.PyArg_ParseTupleAndKeywords">https://docs.python.org/ja/3.13/c-api/arg.html#c.PyArg_ParseTupleAndKeywords</a>
+
+引数の解釈と値の構築 &#8212; Python 3.13.3 ドキュメント - c.Py_BuildValue
+  + <a href="https://docs.python.org/ja/3.13/c-api/arg.html#c.Py_BuildValue">https://docs.python.org/ja/3.13/c-api/arg.html#c.Py_BuildValue</a>
+
+Cで作った関数をpythonで呼ぶ - Qiita
+  + <a href="https://qiita.com/nabion/items/594fb3316583130a636e">https://qiita.com/nabion/items/594fb3316583130a636e</a>
+
+Cの自作ライブラリをPythonから呼び出す方法
+  + <a href="https://jitaku.work/it/language/python/python-c/">https://jitaku.work/it/language/python/python-c/</a>
+
+組み込みエンジニアの戸惑い　PythonからC言語を呼び出してみる①（Python/C APIを使った場合） - KUMICO
+  + <a href="https://www.fsi-embedded.jp/kumico/column/1543/">https://www.fsi-embedded.jp/kumico/column/1543/</a>
+
+Ubuntu（WSL）でPython.hが見つからない問題
+  + <a href="https://zenn.dev/bluepost/articles/a824b2905df36f">https://zenn.dev/bluepost/articles/a824b2905df36f</a>
+</div>
+</ul>
+</body>
+</html>
+
