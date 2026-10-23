@@ -706,6 +706,9 @@ def format_content_inlines(line_in, iLine, remove_inlines=False):
         if counter == 20:
             raise Exception('The number of inlines tags exceeded the upper limit.')
 
+    if const.platform != 'local':
+        line = line.replace(const.url_page_local, const.url_page)
+
     #for content in contents_mathjax:
     #    line = line.replace('\(\)','\('+content+'\)',1)
 
@@ -2301,8 +2304,10 @@ class Const():
 
     inline_replace = 'r'
 
-    def load_config(self, conf):
+    def load_config(self, file_conf):
         print('load config')
+        conf = json.load(open(file_conf, 'r'))
+
         self.url = conf['url']
         self.style_css = conf['style_css']
 
@@ -2317,6 +2322,12 @@ class Const():
         self.url_page_base = f'{self.url}/page'
         self.dir_page = f'{self.dir_top}/page{self.ext_platform}'
         self.url_page = f'{self.url}/page{self.ext_platform}'
+
+        if self.platform == 'local':
+            self.url_page_local = self.url_page
+        else:
+            conf_local = json.load(open(f'{os.path.dirname(file_conf)}/local.json', 'r'))
+            self.url_page_local = f'{conf_local["url"]}/page_{conf_local["platform"]}'
 
 
 class Keyword():
@@ -2395,9 +2406,7 @@ args = parser.parse_args()
 
 dirName_ = args.dirName
 
-conf = json.load(open(args.config, 'r'))
-
-const.load_config(conf)
+const.load_config(args.config)
 
 fmt = Format(const)
 
