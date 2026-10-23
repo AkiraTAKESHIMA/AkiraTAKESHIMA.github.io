@@ -397,7 +397,7 @@ dimensions: 2, type: 12
 解説: コンパイル
 </div>
 <div class='contents'>
-　<a class='colored' href="file://wsl.localhost/Debian/home/akira/website/AkiraTAKESHIMA.github.io/page_local/C/contents/python/fundamentals.html">「基本」</a>でも述べたように，<span class='word'>C</span>を<span class='word'>Python</span>と連携させるには<span class='word'>C</span>のコンパイル時に<span class='word'>Python</span>関連のヘッダーファイルがあるディレクトリを検索対象に含める必要がある．
+　<a class='colored' href="https://akiratakeshima.github.io/page/C/contents/python/fundamentals.html">「基本」</a>でも述べたように，<span class='word'>C</span>を<span class='word'>Python</span>と連携させるには<span class='word'>C</span>のコンパイル時に<span class='word'>Python</span>関連のヘッダーファイルがあるディレクトリを検索対象に含める必要がある．
 　<span class='word'>Python</span>オブジェクトと<span class='word'>numpy</span>配列を使うのに必要なヘッダーファイルはそれぞれ<span class='var'>Python.h</span>と<span class='var'>arrayobject.h</span>．なお，この例では<span class='var'>arrayobject.h</span>は<span class='var'>numpy</span>というディレクトリにある前提で，ソースコードにおいて<span class='var'>numpy/arrayobject.h</span>で指定している．
 　自分の環境では<span class='var'>Python.h</span>は<span class='var'>/usr/include/python3.9</span>に，<span class='var'>arrayobject.h</span>は<span class='var'>/usr/include/python3.9/numpy</span>にあるので，コンパイル時に<span class='var'>-I</span>で<span class='var'>/usr/include/python3.9</span>を検索対象に加えている．
 </div>
