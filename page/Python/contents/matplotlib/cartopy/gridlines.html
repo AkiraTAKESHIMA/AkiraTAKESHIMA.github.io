@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>グリッド線</title>
+  <meta name="viewport" content="width=device-width">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Sheet" content="text/css">
+  <link rel="icon" href="https://akiratakeshima.github.io/img/icon/favicon_03-5.ico" />
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/fortran.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/python.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/c.css" media="all">
+  <script type="text/javascript" src="{const.url}/js/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+  <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+
+<body>
+
+  <!-- Title -->
+  <ul class='indexBox'>
+    <div class='title'>
+      グリッド線
+    </div>
+  </ul>
+
+  <!-- Route -->
+  <ul class='indexBox'>
+    <div class='route'>
+      <u><a href="https://akiratakeshima.github.io/index.html">Top</a></u>
+      &gt; <u><a href="https://akiratakeshima.github.io/page/Python/index.html">Python</a></u>
+ &gt; 作図 (Matplotlib) &gt; 地理空間上での描画 (Cartopy)
+    </div>
+  </ul>
+
+<!-- Contents -->
+<ul class='contentBox'>
+<div class='index'>
+準備
+</div>
+<div class='contents'>
+　図法によって調整の仕方が異なるが，ひとまず全球でよく使う<span class='var'>PlateCarree</span>と領域でよく使う<span class='var'>LambertConformal</span>でよく使う設定を簡単にまとめる．
+　例は主に<span class='var'>LambertConformal</span>で示すが，<span class='var'>PlateCarree</span>にも同様に適用できる．
+
+　まずインポートと図法の定義をする．
+<pre><code class="language-python"><span class="pythonInclude">import</span> numpy <span class="pythonStatement">as</span> np
+<span class="pythonInclude">import</span> matplotlib.pyplot <span class="pythonStatement">as</span> plt
+<span class="pythonInclude">import</span> cartopy.crs <span class="pythonStatement">as</span> ccrs
+<span class="pythonInclude">from</span> cartopy.mpl.ticker <span class="pythonInclude">import</span> (
+    LatitudeFormatter, LongitudeFormatter,
+    LatitudeLocator, LongitudeLocator,
+)
+
+PC = ccrs.PlateCarree()
+
+LCC = ccrs.LambertConformal(
+    central_longitude=<span class="pythonNumber">140.0</span>,
+    central_latitude=<span class="pythonNumber">30.0</span>,
+    standard_parallels=(<span class="pythonNumber">60.0</span>, <span class="pythonNumber">30.0</span>),
+ )
+</code></pre>
+</div>
+<div class='index'>
+自分用テンプレート
+</div>
+<div class='contents'>
+<span class='index2'>Global, PlateCarree</span>
+<pre><code class="language-python">fig, ax = plt.subplots(
+    figsize=(<span class="pythonNumber">8</span>,<span class="pythonNumber">6</span>),
+    subplot_kw={<span class="pythonString">'</span><span class="pythonString">projection</span><span class="pythonString">'</span>: PC},
+    constrained_layout=<span class="pythonBuiltin">True</span>,
+)
+ax.coastlines(linewidth=<span class="pythonNumber">0.5</span>)
+ax.set_global()
+
+locs = plt.MultipleLocator(<span class="pythonNumber">30</span>)
+
+gl = ax.gridlines(
+    xlocs=locs, ylocs=locs,
+    draw_labels=<span class="pythonBuiltin">True</span>,
+    linewidth=<span class="pythonNumber">0.5</span>, color=<span class="pythonString">'</span><span class="pythonString">silver</span><span class="pythonString">'</span>,
+)
+gl.top_labels = <span class="pythonBuiltin">False</span>
+gl.right_labels = <span class="pythonBuiltin">False</span>
+gl.xlabel_style = <span class="pythonBuiltin">dict</span>(rotation=<span class="pythonNumber">90</span>)
+</code></pre>
+<a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/cartopy/gridlines/sample_PC_standard.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/cartopy/gridlines/sample_PC_standard.png"></a>
+
+<span class='index2'>Regional, LambertConformal</span>
+<pre><code class="language-python">fig, ax = plt.subplots(
+    figsize=(<span class="pythonNumber">8</span>,<span class="pythonNumber">6</span>),
+    subplot_kw={<span class="pythonString">'</span><span class="pythonString">projection</span><span class="pythonString">'</span>: LCC},
+    constrained_layout=<span class="pythonBuiltin">True</span>,
+)
+ax.coastlines(linewidth=<span class="pythonNumber">0.5</span>, resolution=<span class="pythonString">'</span><span class="pythonString">10m</span><span class="pythonString">'</span>)
+ax.set_extent([<span class="pythonNumber">139.5</span>, <span class="pythonNumber">141</span>, <span class="pythonNumber">34.8</span>, <span class="pythonNumber">36</span>], crs=ccrs.PlateCarree())
+
+locs = plt.MultipleLocator(<span class="pythonNumber">0.2</span>)
+number_format = <span class="pythonString">'</span><span class="pythonString">.1f</span><span class="pythonString">'</span>
+labelsize = <span class="pythonNumber">10</span>
+
+gl = ax.gridlines(
+    xlocs=locs, ylocs=locs,
+    draw_labels=<span class="pythonBuiltin">True</span>,
+    x_inline=<span class="pythonBuiltin">False</span>, y_inline=<span class="pythonBuiltin">False</span>,
+    linewidth=<span class="pythonNumber">0.5</span>, color=<span class="pythonString">'</span><span class="pythonString">gray</span><span class="pythonString">'</span>,
+)
+gl.top_labels = <span class="pythonBuiltin">False</span>
+gl.right_labels = <span class="pythonBuiltin">False</span>
+gl.xformatter = LongitudeFormatter(number_format=number_format)
+gl.yformatter = LatitudeFormatter(number_format=number_format)
+gl.xlabel_style = <span class="pythonBuiltin">dict</span>(rotation=<span class="pythonNumber">70</span>, size=labelsize)
+gl.ylabel_style = <span class="pythonBuiltin">dict</span>(size=labelsize)
+</code></pre>
+<a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/cartopy/gridlines/sample_LCC_standard.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/cartopy/gridlines/sample_LCC_standard.png"></a>
+</div>
+<div class='index'>
+座標線とラベルの描画
+</div>
+<div class='contents'>
+<pre><code class="language-python">fig, axes = plt.subplots(
+    <span class="pythonNumber">1</span>, <span class="pythonNumber">2</span>,
+    figsize=(<span class="pythonNumber">12</span>,<span class="pythonNumber">6</span>),
+    subplot_kw={<span class="pythonString">'</span><span class="pythonString">projection</span><span class="pythonString">'</span>: LCC},
+)
+<span class="pythonRepeat">for</span> ax <span class="pythonOperator">in</span> axes:
+    ax.coastlines(linewidth=<span class="pythonNumber">0.5</span>, resolution=<span class="pythonString">'</span><span class="pythonString">10m</span><span class="pythonString">'</span>)
+    ax.set_extent([<span class="pythonNumber">139.5</span>, <span class="pythonNumber">141</span>, <span class="pythonNumber">34.8</span>, <span class="pythonNumber">36</span>], crs=ccrs.PlateCarree())
+
+xlocs = np.arange(<span class="pythonNumber">120</span>, <span class="pythonNumber">150</span>, <span class="pythonNumber">0.2</span>)
+ylocs = plt.MultipleLocator(<span class="pythonNumber">0.2</span>)
+
+<span class="pythonComment"># Left panel -- labels on the left and bottom</span>
+gl = axes[<span class="pythonNumber">0</span>].gridlines(
+    xlocs=xlocs, ylocs=ylocs,
+    draw_labels=<span class="pythonBuiltin">True</span>,
+    linewidth=<span class="pythonNumber">0.5</span>, color=<span class="pythonString">'</span><span class="pythonString">gray</span><span class="pythonString">'</span>,
+)
+gl.top_labels = <span class="pythonBuiltin">False</span>
+gl.right_labels = <span class="pythonBuiltin">False</span>
+gl.xformatter = LongitudeFormatter(dms=<span class="pythonBuiltin">True</span>, auto_hide=<span class="pythonBuiltin">False</span>)
+gl.yformatter = LatitudeFormatter(number_format=<span class="pythonString">'</span><span class="pythonString">.2f</span><span class="pythonString">'</span>)
+
+<span class="pythonComment"># Right panel -- labels on the left and bottom</span>
+gl = axes[<span class="pythonNumber">1</span>].gridlines(
+    xlocs=xlocs, ylocs=ylocs,
+    draw_labels=<span class="pythonBuiltin">True</span>,
+    x_inline=<span class="pythonBuiltin">False</span>, y_inline=<span class="pythonBuiltin">False</span>,
+    linewidth=<span class="pythonNumber">0.5</span>, color=<span class="pythonString">'</span><span class="pythonString">gray</span><span class="pythonString">'</span>,
+)
+gl.top_labels = <span class="pythonBuiltin">False</span>
+gl.right_labels = <span class="pythonBuiltin">False</span>
+
+<span class="pythonComment"># Add new labels on the top</span>
+gl = axes[<span class="pythonNumber">1</span>].gridlines(
+    xlocs=xlocs,
+    draw_labels=<span class="pythonBuiltin">False</span>,
+    x_inline=<span class="pythonBuiltin">False</span>,
+    color=<span class="pythonString">'</span><span class="pythonString">none</span><span class="pythonString">'</span>,
+)
+gl.top_labels = <span class="pythonBuiltin">True</span>
+gl.xlabel_style = <span class="pythonBuiltin">dict</span>(
+    size=<span class="pythonNumber">8</span>, weight=<span class="pythonString">'</span><span class="pythonString">bold</span><span class="pythonString">'</span>, color=<span class="pythonString">'</span><span class="pythonString">firebrick</span><span class="pythonString">'</span>, rotation=<span class="pythonNumber">70</span>,
+)
+</code></pre>
+<a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/cartopy/gridlines/sample_LCC_2-panels.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/cartopy/gridlines/sample_LCC_2-panels.png"></a>
+
+　<span class='var-n'>class cartopy.mpl.ticker.LongitudeFormatter</span>
+　　軸ラベルの形式を制御する．引数が多いので詳細は下のリンクを参照のこと．
+
+　　<span class='var-n'>dms</span> (<span class='var-r'>bool</span>, <span class='it-n'>optional</span>, default=<span class='var-n'>False</span>): <span class='var'>True</span>のとき，度分秒で表示する．<span class='var'>False</span>のとき，度を<span class='word'>10</span>進数で表示する．
+
+　　<span class='var-n'>auto_hide</span> (<span class='var-r'>bool</span>, <span class='it-n'>optional</span>, default=<span class='var-n'>True</span>): 度や分で同じ値が繰り返されるとき，省略する．<span class='var-colored'>dms</span>が<span class='var'>True</span>のときのみ有効．
+
+　　<span class='var-n'>number_format</span> (<span class='it-r'>optional</span>, default=<span class='var-n'>'g'</span>): 値の書式を指定する．<span class='var-colored'>dms</span>が<span class='var'>False</span>のときのみ有効．
+
+　+ <a class='colored' href="https://cartopy.readthedocs.io/stable/reference/generated/cartopy.mpl.ticker.LongitudeFormatter.html">cartopy.mpl.ticker.LongitudeFormatter &#8212; cartopy 0.26.0 documentation</a>
+
+　+ <a class='colored' href="https://cartopy.readthedocs.io/stable/matplotlib/gridliner.html">Cartopy map gridlines and tick labels &#8212; cartopy 0.26.0 documentation</a>
+</div>
+</ul>
+
+<!-- References -->
+<ul class='contentBox'>
+<div class='index'>References</div>
+<div class='ref'>
+Cartopy map gridlines and tick labels &#8212; cartopy 0.26.0 documentation
+  + <a href="https://cartopy.readthedocs.io/stable/matplotlib/gridliner.html">https://cartopy.readthedocs.io/stable/matplotlib/gridliner.html</a>
+
+cartopy.mpl.ticker.LongitudeFormatter &#8212; cartopy 0.26.0 documentation
+  + <a href="https://cartopy.readthedocs.io/stable/reference/generated/cartopy.mpl.ticker.LongitudeFormatter.html">https://cartopy.readthedocs.io/stable/reference/generated/cartopy.mpl.ticker.LongitudeFormatter.html</a>
+
+python 3.x - How can one set cartopy&#39;s Gridline label styles (major_xticks and minor_xticks) of a set of geoaxes - subplots? - Stack Overflow
+  + <a href="https://stackoverflow.com/questions/65298032/how-can-one-set-cartopys-gridline-label-styles-major-xticks-and-minor-xticks">https://stackoverflow.com/questions/65298032/how-can-one-set-cartopys-gridline-label-styles-major-xticks-and-minor-xticks</a>
+</div>
+</ul>
+</body>
+</html>
+

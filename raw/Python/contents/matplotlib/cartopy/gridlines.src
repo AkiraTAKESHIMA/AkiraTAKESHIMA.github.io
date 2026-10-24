@@ -1,0 +1,176 @@
+#===============================================================
+#
+#===============================================================
+## index
+準備
+## index/
+## contents
+　図法によって調整の仕方が異なるが、ひとまず全球でよく使う/v{PlateCarree}と領域でよく使う/v{LambertConformal}でよく使う設定を簡単にまとめる。
+　例は主に/v{LambertConformal}で示すが、/v{PlateCarree}にも同様に適用できる。
+
+　まずインポートと図法の定義をする。
+## src python
+import numpy as np
+import matplotlib.pyplot as plt
+import cartopy.crs as ccrs
+from cartopy.mpl.ticker import (
+    LatitudeFormatter, LongitudeFormatter, 
+    LatitudeLocator, LongitudeLocator,
+)
+
+PC = ccrs.PlateCarree()
+
+LCC = ccrs.LambertConformal(
+    central_longitude=140.0,
+    central_latitude=30.0,
+    standard_parallels=(60.0, 30.0),
+ )
+## src/
+## contents/
+#===============================================================
+#
+#===============================================================
+## index
+自分用テンプレート
+## index/
+## contents
+/idx2{Global, PlateCarree}
+## src python
+fig, ax = plt.subplots(
+    figsize=(8,6),
+    subplot_kw={'projection': PC},
+    constrained_layout=True,
+)
+ax.coastlines(linewidth=0.5)
+ax.set_global()
+
+locs = plt.MultipleLocator(30)
+
+gl = ax.gridlines(
+    xlocs=locs, ylocs=locs,
+    draw_labels=True,
+    linewidth=0.5, color='silver',
+)
+gl.top_labels = False
+gl.right_labels = False
+gl.xlabel_style = dict(rotation=90)
+## src/
+## img
+url="${img}/sample_PC_standard.png"
+## img/
+
+/idx2{Regional, LambertConformal}
+## src python
+fig, ax = plt.subplots(
+    figsize=(8,6),
+    subplot_kw={'projection': LCC},
+    constrained_layout=True,
+)
+ax.coastlines(linewidth=0.5, resolution='10m')
+ax.set_extent([139.5, 141, 34.8, 36], crs=ccrs.PlateCarree())
+
+locs = plt.MultipleLocator(0.2)
+number_format = '.1f'
+labelsize = 10
+
+gl = ax.gridlines(
+    xlocs=locs, ylocs=locs,
+    draw_labels=True,
+    x_inline=False, y_inline=False,
+    linewidth=0.5, color='gray',
+)
+gl.top_labels = False
+gl.right_labels = False
+gl.xformatter = LongitudeFormatter(number_format=number_format)
+gl.yformatter = LatitudeFormatter(number_format=number_format)
+gl.xlabel_style = dict(rotation=70, size=labelsize)
+gl.ylabel_style = dict(size=labelsize)
+## src/
+## img
+url="${img}/sample_LCC_standard.png"
+## img/
+## contents/
+#===============================================================
+#
+#===============================================================
+## index
+座標線とラベルの描画
+## index/
+## contents
+## src python
+fig, axes = plt.subplots(
+    1, 2,
+    figsize=(12,6),
+    subplot_kw={'projection': LCC},
+)
+for ax in axes:
+    ax.coastlines(linewidth=0.5, resolution='10m')
+    ax.set_extent([139.5, 141, 34.8, 36], crs=ccrs.PlateCarree())
+
+xlocs = np.arange(120, 150, 0.2)
+ylocs = plt.MultipleLocator(0.2)
+
+# Left panel -- labels on the left and bottom
+gl = axes[0].gridlines(
+    xlocs=xlocs, ylocs=ylocs,
+    draw_labels=True,
+    linewidth=0.5, color='gray',
+)
+gl.top_labels = False
+gl.right_labels = False
+gl.xformatter = LongitudeFormatter(dms=True, auto_hide=False)
+gl.yformatter = LatitudeFormatter(number_format='.2f')
+
+# Right panel -- labels on the left and bottom
+gl = axes[1].gridlines(
+    xlocs=xlocs, ylocs=ylocs,
+    draw_labels=True,
+    x_inline=False, y_inline=False,
+    linewidth=0.5, color='gray',
+)
+gl.top_labels = False
+gl.right_labels = False
+
+# Add new labels on the top
+gl = axes[1].gridlines(
+    xlocs=xlocs,
+    draw_labels=False,
+    x_inline=False,
+    color='none',
+)
+gl.top_labels = True
+gl.xlabel_style = dict(
+    size=8, weight='bold', color='firebrick', rotation=70,
+)
+## src/
+## img
+url="${img}/sample_LCC_2-panels.png"
+## img/
+
+　/vn{class cartopy.mpl.ticker.LongitudeFormatter}
+　　軸ラベルの形式を制御する。引数が多いので詳細は下のリンクを参照のこと。
+
+　　/vn{dms} (/vr{bool}, /in{optional}, default=/vn{False}): /v{True}のとき、度分秒で表示する。/v{False}のとき、度を/w{10}進数で表示する。
+
+　　/vn{auto_hide} (/vr{bool}, /in{optional}, default=/vn{True}): 度や分で同じ値が繰り返されるとき、省略する。/vc{dms}が/v{True}のときのみ有効。
+
+　　/vn{number_format} (/ir{optional}, default=/vn{'g'}): 値の書式を指定する。/vc{dms}が/v{False}のときのみ有効。
+
+　+ /ac{cartopy.mpl.ticker.LongitudeFormatter &#8212; cartopy 0.26.0 documentation}{https://cartopy.readthedocs.io/stable/reference/generated/cartopy.mpl.ticker.LongitudeFormatter.html}
+
+　+ /ac{Cartopy map gridlines and tick labels &#8212; cartopy 0.26.0 documentation}{https://cartopy.readthedocs.io/stable/matplotlib/gridliner.html}
+## contents/
+#===============================================================
+#
+#===============================================================
+## ref
+Cartopy map gridlines and tick labels &#8212; cartopy 0.26.0 documentation
+https://cartopy.readthedocs.io/stable/matplotlib/gridliner.html
+
+cartopy.mpl.ticker.LongitudeFormatter &#8212; cartopy 0.26.0 documentation
+https://cartopy.readthedocs.io/stable/reference/generated/cartopy.mpl.ticker.LongitudeFormatter.html
+
+python 3.x - How can one set cartopy&#39;s Gridline label styles (major_xticks and minor_xticks) of a set of geoaxes - subplots? - Stack Overflow
+https://stackoverflow.com/questions/65298032/how-can-one-set-cartopys-gridline-label-styles-major-xticks-and-minor-xticks
+
+## ref/

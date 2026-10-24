@@ -88,6 +88,10 @@ def mklist_inlines():
       mkdict_cls(0, 'span', 'vl'    , 'var-l'  ),
       mkdict_cls(0, 'span', 'vr'    , 'var-r'  ),
       mkdict_cls(0, 'span', 'vn'    , 'var-n'  ),
+      mkdict_cls(0, 'span', 'vc'    , 'var-colored'  ),  # both margins
+      mkdict_cls(0, 'span', 'vcl'   , 'var-colored-l'),
+      mkdict_cls(0, 'span', 'vcr'   , 'var-colored-r'),
+      mkdict_cls(0, 'span', 'vcn'   , 'var-colored-n'),
       mkdict_cls(0, 'span', 's'     , 'src'    ),  # both margins
       mkdict_cls(0, 'span', 'sl'    , 'src-l'  ),
       mkdict_cls(0, 'span', 'sr'    , 'src-r'  ),
@@ -1162,7 +1166,11 @@ def format_content_img(
                 figinfo['cls'] = const.img_cls_mw50
 
         if figinfo['url'] is not None:
-            lines_fmt.append(fmt.img_src.format(**figinfo))
+            lines_fmt.append(fmt.img_src.format(
+                url=figinfo['url'],
+                src=figinfo['url'],
+                cls=figinfo['cls'],
+            ))
 
         elif figinfo['url_drive'] is not None:
             if figinfo['ext_drive'] is None:
@@ -1451,6 +1459,8 @@ def format_content_body_main(
         #-------------------------------------------------------
         # Case: Block ends and new block begins
         elif blockStatus == const.blockStatus_end:
+            flag_block_src_end = False
+
             if flag_block_math_end:
                 s = '</nobr></div>'  # put nobr on the head of the new line
                 flag_nobr_closed = True
@@ -1463,7 +1473,7 @@ def format_content_body_main(
                 lines_fmt.append(s + '</div>')
                 del blockNames[-1]
                 depth -= 1
-                flag_block_src_end = False
+                #flag_block_src_end = False
 
             elif blockName in const.blockNames_special:
                 if blockName == const.blockName_lastUpdate:

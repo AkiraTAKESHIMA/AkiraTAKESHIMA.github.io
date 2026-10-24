@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>座標変換</title>
+  <meta name="viewport" content="width=device-width">
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+  <meta http-equiv="Content-Style-Sheet" content="text/css">
+  <link rel="icon" href="https://akiratakeshima.github.io/img/icon/favicon_03-5.ico" />
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/common.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/fortran.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/python.css" media="all">
+  <link rel="stylesheet" type="text/css" href="https://akiratakeshima.github.io/css/src/c.css" media="all">
+  <script type="text/javascript" src="{const.url}/js/highlight.min.js"></script>
+  <script>hljs.highlightAll();</script>
+  <script type="text/javascript" id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+</head>
+
+
+<body>
+
+  <!-- Title -->
+  <ul class='indexBox'>
+    <div class='title'>
+      座標変換
+    </div>
+  </ul>
+
+  <!-- Route -->
+  <ul class='indexBox'>
+    <div class='route'>
+      <u><a href="https://akiratakeshima.github.io/index.html">Top</a></u>
+      &gt; <u><a href="https://akiratakeshima.github.io/page/Python/index.html">Python</a></u>
+ &gt; 地理空間 (Cartopy)
+    </div>
+  </ul>
+
+<!-- Contents -->
+<ul class='contentBox'>
+<div class='index'>
+手続き
+</div>
+<div class='contents'>
+<span class='var'>class cartopy.crs.CRS</span>の持つ手続きを使って投影法間で座標を変換することができる．
+
+　<span class='var'>transform_point(<span class='it-n'>x</span>, <span class='it-n'>y</span>, <span class='it-n'>src_crs</span>)</span>
+　　<span class='var-colored-r'>src_crs</span>の座標系上の座標<span class='var-colored'>(x,y)</span>をこの座標系に変換する．<span class='word'>1</span>点のみの変換．
+
+　　<span class='var'>src_crs</span>: <span class='var-r'>class cartopy.crs.CRS</span>
+　　<span class='var'>x</span>, <span class='var'>y</span>: <span class='var-r'>float</span>
+
+　<span class='var'>transform_points(<span class='it-n'>src_crs</span>, <span class='it-n'>x</span>, <span class='it-n'>y</span>[, <span class='it-n'>z</span>])</span>
+　　<span class='var-colored'>src_crs</span>の座標系上の座標<span class='var-colored'>(x,y)</span>をこの座標系に変換する．複数の点の変換．
+
+　　<span class='var'>src_crs</span>: <span class='var-r'>class cartopy.crs.CRS</span>
+　　<span class='var'>x</span>, <span class='var'>y</span>: <span class='var-r'>numpy</span>配列
+
+　　Return:
+　　　<span class='var-r'>shape(x) + (,3)</span>の<span class='var'>numpy</span>配列．最後の次元の<span class='word'>1, 2, 3</span>つ目の要素がそれぞれ<span class='word'>x, y, z</span>座標．
+　　　<span class='var-r'>x</span>の形状が<span class='var'>(M,N)</span>のとき，戻り値の形状は<span class='var'>(M,N,3)</span>で，<span class='var'>[:,:,0]</span>が<span class='word'>x</span>座標．
+
+  + <a class='colored' href="https://cartopy.readthedocs.io/stable/reference/generated/cartopy.crs.CRS.html#cartopy.crs.CRS">cartopy.crs.CRS &#8212; cartopy 0.26.0 documentation</a>
+
+</div>
+<div class='index'>
+例: 緯度経度座標で定義された日本域の外周線を<span class='word'>LCC</span>投影面座標に変換する
+</div>
+<div class='contents'>
+
+　緯度経度座標を座標系に持つのは正方形図法 (Plate Carrée, 等距円筒図法)．
+　これを領域の描画でよく用いられる<span class='word'>LCC</span>図法 (Lambert conformal conic projection, ランベルト正角円錐図法) に変換する．
+
+　<span class='var-r'>cartopy.crs</span>において，正方形図法は<span class='var'>PlateCarree</span>, <span class='word'>LCC</span>図法は<span class='var'>LambertComformal</span>で定義される．
+
+<span class='index2'>インポート</span>
+<pre><code class="language-python"><span class="pythonInclude">import</span> numpy <span class="pythonStatement">as</span> np
+<span class="pythonInclude">import</span> matplotlib.pyplot <span class="pythonStatement">as</span> plt
+<span class="pythonInclude">import</span> cartopy.crs <span class="pythonStatement">as</span> ccrs
+</code></pre>
+<span class='index2'>図法を定義する</span>
+<pre><code class="language-python">PC = ccrs.PlateCarree()
+
+LCC = ccrs.LambertConformal(
+    central_longitude=<span class="pythonNumber">140.0</span>,
+    central_latitude=<span class="pythonNumber">30.0</span>,
+    standard_parallels=(<span class="pythonNumber">60.0</span>, <span class="pythonNumber">30.0</span>),
+)
+</code></pre>
+<span class='index2'>緯度経度座標を<span class='word'>LCC</span>投影面座標へ変換する</span>
+<pre><code class="language-python">west, east, south, north = <span class="pythonNumber">120</span>, <span class="pythonNumber">150</span>, <span class="pythonNumber">20</span>, <span class="pythonNumber">50</span>
+
+points_lon = np.array([west, west, east, east])
+points_lat = np.array([north, south, south, north])
+
+points_xyz = LCC.transform_points(PC, points_lon, points_lat)
+points_x = points_xyz[:,<span class="pythonNumber">0</span>]
+points_y = points_xyz[:,<span class="pythonNumber">1</span>]
+points_z = points_xyz[:,<span class="pythonNumber">2</span>]
+<span class="pythonBuiltin">print</span>(f<span class="pythonString">'</span><span class="pythonString">xyz shape: {points_xyz.shape}</span><span class="pythonString">'</span>)
+</code></pre>
+Out:
+<pre><code class="language-plaintext">xyz shape: (4, 3)
+</code></pre>
+<span class='index2'><span class='word-r'>LCC</span>投影面に描画する</span>
+<pre><code class="language-python">fig, ax = plt.subplots(figsize=(<span class="pythonNumber">8</span>,<span class="pythonNumber">5</span>), subplot_kw={<span class="pythonString">'</span><span class="pythonString">projection</span><span class="pythonString">'</span>: LCC})
+ax.plot(
+    np.r_[points_x, points_x[<span class="pythonNumber">0</span>]],
+    np.r_[points_y, points_y[<span class="pythonNumber">0</span>]],
+    lw=<span class="pythonNumber">1</span>, color=<span class="pythonString">'</span><span class="pythonString">k</span><span class="pythonString">'</span>, zorder=<span class="pythonNumber">1</span>,
+)
+ax.scatter(
+    points_x, points_y,
+    s=<span class="pythonNumber">20</span>, color=<span class="pythonString">'</span><span class="pythonString">r</span><span class="pythonString">'</span>, zorder=<span class="pythonNumber">2</span>,
+)
+ax.coastlines(lw=<span class="pythonNumber">0.5</span>)
+plt.show()
+</code></pre>
+<a href="https://akiratakeshima.github.io/page/Python/img/cartopy/coordConversion/transform_points.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/cartopy/coordConversion/transform_points.png"></a>
+</div>
+</ul>
+
+<!-- References -->
+<ul class='contentBox'>
+<div class='index'>References</div>
+<div class='ref'>
+cartopy.crs.CRS &#8212; cartopy 0.26.0 documentation
+  + <a href="https://cartopy.readthedocs.io/stable/reference/generated/cartopy.crs.CRS.html">https://cartopy.readthedocs.io/stable/reference/generated/cartopy.crs.CRS.html</a>
+</div>
+</ul>
+</body>
+</html>
+

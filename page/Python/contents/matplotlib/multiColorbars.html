@@ -87,7 +87,7 @@ cbar_heat = fig.colorbar(
 
 plt.show()
 </code></pre>
-<a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/multi-colorbars/auto_01.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/multi-colorbars/auto_01.png"></a>
+<a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/multiColorbars/auto_01.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/multiColorbars/auto_01.png"></a>
 
 　ポイントは
 　・<span class='word'>Line plot</span>のカラーバーの描画には<span class='src'>ScalarMappable</span>を使う
@@ -101,7 +101,7 @@ plt.show()
 　2. <span class='src'>pad</span>の基準は，最も図に近いカラーバーの場合は図本体，それ以外は自分よりひとつ内側（図本体に近い側）のカラーバーである
 　　この例で言うと，<span class='src'>cbar_heat</span>は図本体から<span class='word'>0.04</span>, <span class='src'>cbar_line</span>は<span class='src'>cbar_heat</span>から<span class='word'>0.08</span>の距離に配置される．もっと細かい話をすると，<span class='src'>cbar_line</span>が基準としているのは<span class='src'>cbar_heat</span>の軸ではなく，目盛ラベル (<span class='word'>0.00</span>とか<span class='word'>-0.75</span>とか) の右側となっているようである（推察）．だから例えば<span class='src'>cbar_line</span>で<span class='src'>pad=0</span>とすると下図のようになる．
 
-<a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/multi-colorbars/auto_02.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/multi-colorbars/auto_02.png"></a>
+<a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/multiColorbars/auto_02.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/multiColorbars/auto_02.png"></a>
 </div>
 <div class='index'>
 カラーバーの軸を明示的に定義する
@@ -144,7 +144,7 @@ cbar_line = fig.colorbar(sm_line, cax=cax_line, orientation=<span class="pythonS
 
 plt.show()
 </code></pre>
-<a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/multi-colorbars/add_axes_01.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/multi-colorbars/add_axes_01.png"></a>
+<a href="https://akiratakeshima.github.io/page/Python/img/matplotlib/multiColorbars/add_axes_01.png"><img class='mw50' src="https://akiratakeshima.github.io/page/Python/img/matplotlib/multiColorbars/add_axes_01.png"></a>
 </div>
 </ul>
 </body>
